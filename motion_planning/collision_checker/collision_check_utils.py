@@ -1,0 +1,19 @@
+import pybullet_tools.utils as pb_utils
+from .object_geometry import *
+
+def object_geometry_to_pybullet_object(object_geometry):
+
+    if isinstance(object_geometry, PointCloud):
+        mesh = pb_utils.mesh_from_points(object_geometry.points)
+        obj_from_mesh = pb_utils.create_mesh(mesh)
+        return obj_from_mesh
+
+    elif isinstance(object_geometry, Box):
+        return pb_utils.create_box(*object_geometry.dims)
+
+def get_pb_pose_from_pillar_state(pillar_state, obj_name):
+    pose_arr =  pillar_state.get_values_as_vec([f"frame:{obj_name}:pose/position", f"frame:{obj_name}:pose/quaternion"])
+    position = pose_arr[:3]
+    wxyz_quaternion = pose_arr[3:]
+    xyzw_quaternion = wxyz_quaternion[1:] + [wxyz_quaternion[0]]
+    return (position, xyzw_quaternion)
