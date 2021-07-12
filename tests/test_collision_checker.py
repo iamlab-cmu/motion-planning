@@ -6,7 +6,8 @@ cfg = YamlConfig("cfg/collision_checker.yaml") #TODO change to hydra
 
 def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg):
     pillar_state = State()
-    pillar_state.update_property("frame:franka:joint_positions", [0,0,0,0,0,0,0])
+    joint_positions = [ 0.,0.,0.,-1.5708,0.,1.8675,0.,0.02,0.02  ]
+    pillar_state.update_property("frame:franka:joint_positions", joint_positions)
     for object_name in object_name_to_pose.keys():
         pillar_state.update_property(f"frame:{object_name}:pose/position", object_name_to_pose[object_name][:3])
         pillar_state.update_property(f"frame:{object_name}:pose/quaternion",  object_name_to_pose[object_name][3:])
@@ -22,6 +23,7 @@ def test_2_boxes_not_in_collision():
                            "box2":Box([cube_length, cube_length, cube_length])}
     collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg)
     assert not collision_checker.pillar_state_in_collision()
+    print("Test passed")
 
 
 def test_disabled_collisions():
