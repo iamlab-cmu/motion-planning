@@ -54,7 +54,7 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
                 self._object_name_to_geometry[object_name])
             obj_pose = get_pb_pose_from_pillar_state(self._pillar_state, object_name)
             pb_utils.set_pose(self._object_name_to_object_id[object_name], obj_pose)
-        #input("Workspace OK?")
+        input("Workspace OK?")
 
     def pillar_state_in_collision(self):
         joint_conf = self._pillar_state.get_values_as_vec([f"frame:{self._robot_name}:joint_positions"])

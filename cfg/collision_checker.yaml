@@ -1,3 +1,3 @@
-gui: False
+gui: True
 robot_urdf_path: "/home/lagrassa/git/pybullet-planning/models/franka_description/robots/panda_arm_hand.urdf"
 
