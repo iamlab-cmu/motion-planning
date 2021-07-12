@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 sys.path.insert(0,'/home/lagrassa/git/pybullet-planning')
-import ipdb; ipdb.set_trace()
 #import pybullet_planning as pp
 import pybullet as p
 from pybullet_tools.ikfast.franka_panda.ik import PANDA_INFO
@@ -31,10 +30,10 @@ def run_planner():
     bounds.setLow(-1)
     bounds.setHigh(1)
     space.setBounds(bounds)
+    space_info = ob.SpaceInformation(space)
+    space_info.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
+    space_info.setup()
 
-    # create a simple setup object
-    ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
     start = ob.State(space)
     # we can pick a random start state...
@@ -44,13 +43,19 @@ def run_planner():
     # we can pick a random goal state...
     goal.random()
 
-    ss.setStartAndGoalStates(start, goal)
+        # Create a problem instance
+    pdef = ob.ProblemDefinition(space_info)
 
-    solved = ss.solve(1.0)
+    # Set the start and goal states
+    pdef.setStartAndGoalStates(start, goal)
 
-    if solved:
-        ss.simplifySolution()
-    return ss.getSolutionPath()
+    planner = og.RRTstar(space_info)
+    planner.setProblemDefinition(pdef)
+    planner.setup()
+    solved = planner.solve(3)
+    #solved = ss.solve(1.0, planner="rrt")
+    assert solved
+    return pdef.getSolutionPath()
 
 def state_to_joints(state, num_joints=7):
     return [state[i] for i in range(num_joints)]
