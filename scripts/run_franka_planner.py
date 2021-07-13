@@ -56,10 +56,11 @@ def main(cfg):
     # create a simple setup object
     pillar_state = State()  # TODO lagrassa make sure synced with state
     pillar_state.update_property(f"frame:{cfg.robot.robot_name}:joint_positions", cfg.task.start_joints)
-    active_joints = range(len(cfg.task.goal.jointspace.joints)) #TODO lagrassa get from config in nice way
+    active_joints = cfg.robot.active_joints
     collision_checker = PyBulletCollisionChecker(pillar_state, {}, active_joints, cfg)
     ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(ob.StateValidityCheckerFn(lambda ompl_state : not collision_checker.ompl_state_in_collision(ompl_state)))
+    ss.setStateValidityChecker(
+        ob.StateValidityCheckerFn(lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
 
     start, goal = get_start_and_goal(space, cfg.task)
     ss.setStartAndGoalStates(start, goal)
