@@ -4,6 +4,8 @@
 from setuptools import setup
 
 requirements = [
+    'urdfpy',
+    'pybullet',
 ]
 
 setup(name='motion_planning',

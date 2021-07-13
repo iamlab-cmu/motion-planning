@@ -1,0 +1,3 @@
+defaults:
+  - robot: franka
+  - task: freespace_move
