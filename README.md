@@ -1,1 +1,4 @@
-# motion-planning
+# Installation
+`cd deps`
+`install-ompl-ubuntu.sh --python`
+

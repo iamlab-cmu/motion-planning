@@ -1,14 +1,11 @@
 from abc import ABC, abstractmethod
-
-import sys
-sys.path.insert(0, '/home/lagrassa/git/pybullet-planning')
-
+from ..utils.utils import add_pb_tools_if_not_on_path
+add_pb_tools_if_not_on_path()
 import pybullet as p
 from itertools import product
 import pybullet_tools.utils as pb_utils
 from .base_collision_checker import BaseCollisionChecker
 from .collision_check_utils import object_geometry_to_pybullet_object, get_pb_pose_from_pillar_state
-
 
 class PyBulletCollisionChecker(BaseCollisionChecker):
     def __init__(self, pillar_state, object_name_to_geometry, cfg, disabled_collisions=[]):
@@ -23,7 +20,7 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._cfg = cfg
         self._object_name_to_object_id = {}
         self._max_distance = 0
-        self._robot_name = cfg.get("robot_name", "franka")
+        self._robot_name = cfg["robot"]["robot_name"]
         self._object_name_to_object_id = {}
         self._setup_env(vis=cfg["gui"])
         self._update_collision_fn()

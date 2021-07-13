@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
+
+
 class ObjectGeometry(ABC):
     def __init__(self, cfg):
         self._cfg = cfg
+
 
 class PointCloud(ObjectGeometry):
     def __init__(self, pts):
@@ -10,6 +13,7 @@ class PointCloud(ObjectGeometry):
     @property
     def points(self):
         return self._pts.copy()
+
 
 class Box(ObjectGeometry):
     def __init__(self, dims):

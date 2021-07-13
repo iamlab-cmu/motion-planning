@@ -1,3 +1,5 @@
 gui: False
-robot_urdf_path: "/home/lagrassa/git/pybullet-planning/models/franka_description/robots/panda_arm_hand.urdf"
+robot:
+  robot_name: franka
+  path_to_urdf: 'assets/franka_description/robots/franka_panda_dynamics.urdf' #in case ran standalone
 
