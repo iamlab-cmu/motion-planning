@@ -31,7 +31,8 @@ def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg):
     for object_name in object_name_to_pose.keys():
         pillar_state.update_property(f"frame:{object_name}:pose/position", object_name_to_pose[object_name][:3])
         pillar_state.update_property(f"frame:{object_name}:pose/quaternion", object_name_to_pose[object_name][3:])
-    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, cfg)
+    active_joints = list(range(7))
+    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg)
 
 
 def test_2_boxes_not_in_collision():
@@ -82,3 +83,5 @@ def test_2_meshes_in_collision():
 
 def test_disabled_collisions():
     pass
+
+test_2_boxes_not_in_collision()

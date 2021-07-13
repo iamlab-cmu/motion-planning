@@ -1,0 +1,1 @@
+from .pybullet_collision_checker import PyBulletCollisionChecker

@@ -1,0 +1,33 @@
+start_joints:
+  - 0.0
+  - 0.0
+  - 0.0
+  - -1.5708
+  - 0.0
+  - 1.8675
+  - 0.0
+
+goal:
+  type: 'jointspace' #cartesian'
+  jointspace:
+    joints:
+      - 0.0
+      - 0.0
+      - 0.0
+      - -1.2
+      - 0.0
+      - 1.6
+      - 0.0
+    tol: 0.1
+
+  cartesian:
+    pose:
+      - x: 0.1
+      - y: 0.1
+      - z: 0.5
+      - roll: 0.0
+      - pitch: 0.0
+      - yaw: 0.0
+    tol_xyz: 0.05
+    tol_rpy: 0.1
+

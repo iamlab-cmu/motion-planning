@@ -6,6 +6,8 @@ from setuptools import setup
 requirements = ["numpy", #needs to be installed before pybullet
                 "pybullet",
                 "pillar_state",
+                "urdfpy", 
+                "hydra_core",
                 "omegaconf"
 ]
 

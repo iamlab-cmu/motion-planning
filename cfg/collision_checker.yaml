@@ -1,5 +1,6 @@
-gui: False
+collision_checking:
+  gui: False
 robot:
   robot_name: franka
-  path_to_urdf: 'assets/franka_description/robots/franka_panda_dynamics.urdf' #in case ran standalone
+  path_to_urdf: 'assets/franka_description/robots/franka_panda_dynamics.urdf' #in case ran standalone, relative to module path
 

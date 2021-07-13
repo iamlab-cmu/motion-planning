@@ -1,6 +1,7 @@
 import sys
 import os
 import motion_planning
+from hydra.utils import to_absolute_path
 
 def add_pb_tools_if_not_on_path():
     path = sys.path
@@ -16,9 +17,12 @@ def add_pb_tools_if_not_on_path():
 
 
 def find_franka_urdf():
-    franka_path = "../assets/franka_description/robots/franka_panda_dynamics.urdf"
+    franka_path = "assets/franka_description/robots/franka_panda_dynamics.urdf"
+    return find_robot_urdf(franka_path)
+
+def find_robot_urdf(urdf_path):
     module_path = find_motion_planning_module()
-    return os.path.join(module_path, franka_path)
+    return os.path.join(module_path,"../", urdf_path)
 
 
 def find_motion_planning_module():
@@ -30,3 +34,8 @@ def find_pb_tools_path_from_module():
     module_path = find_motion_planning_module()
     pb_tools_path = os.path.join(module_path, "../deps/pybullet-planning")
     return pb_tools_path
+
+
+def add_ompl_to_sys_path():
+    path_to_ompl = to_absolute_path('deps/ompl-1.5.2/py-bindings')
+    sys.path.insert(0, path_to_ompl)
