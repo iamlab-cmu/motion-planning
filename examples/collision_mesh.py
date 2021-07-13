@@ -1,4 +1,4 @@
-from motion_planning.utils.utils import add_pb_tools_if_not_on_path, find_franka_urdf
+from motion_planning.utils.utils import add_pb_tools_if_not_on_path, find_robot_urdf
 
 add_pb_tools_if_not_on_path()
 import pybullet_tools.utils as pb_utils
@@ -10,7 +10,7 @@ import time
 
 def load_robot():
     pb_utils.add_data_path()
-    franka_urdf = find_franka_urdf()
+    franka_urdf = find_robot_urdf("assets/franka_description/robots/franka_panda_dynamics.urdf")
     plane = p.loadURDF("plane.urdf")
     with pb_utils.LockRenderer():
         with pb_utils.HideOutput(True):

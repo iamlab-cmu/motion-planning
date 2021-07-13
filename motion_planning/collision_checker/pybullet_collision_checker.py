@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..utils.utils import add_pb_tools_if_not_on_path, joint_names_to_joint_numbers
+from ..utils.utils import add_pb_tools_if_not_on_path, joint_names_to_link_numbers
 
 add_pb_tools_if_not_on_path()
 import pybullet as p
@@ -28,7 +28,7 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._object_name_to_object_id = {}
         self._setup_env(vis=cfg["collision_checking"]["gui"])
         self._disabled_collisions = disabled_collisions
-        self._active_joint_numbers = joint_names_to_joint_numbers(self._robot, self._active_joints)
+        self._active_joint_numbers = joint_names_to_link_numbers(self._robot, self._active_joints)
         self._update_collision_fn()
 
     def _workspace_collisions(self):
