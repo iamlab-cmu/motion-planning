@@ -2,13 +2,12 @@ import hydra
 from hydra.utils import to_absolute_path
 import numpy as np
 
-from os.path import abspath, dirname, join
-import sys
-path_to_ompl = to_absolute_path('./deps/ompl-1.5.2/py-bindings')
-sys.path.insert(0, path_to_ompl)
+from urdfpy import URDF
+
+from motion_planning.utils import add_ompl_to_sys_path
+add_ompl_to_sys_path()
 from ompl import base as ob
 from ompl import geometric as og
-from urdfpy import URDF
 
 
 def get_state_space(cfg):
@@ -58,6 +57,7 @@ def main(cfg):
     ss = og.SimpleSetup(space)
     ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
 
+    start, goal = get_start_and_goal(space, cfg.task)
     ss.setStartAndGoalStates(start, goal)
 
     solved = ss.solve(1.0)
@@ -66,23 +66,26 @@ def main(cfg):
         ss.simplifySolution()
     return ss.getSolutionPath()
 
-def state_to_joints(state, num_joints=7):
-    return [state[i] for i in range(num_joints)]
-def show_plan(plan):
-    connect(use_gui=True)
-    add_data_path()
-    draw_pose(Pose(), length=1.)
-    set_camera_pose(camera_point=[1, -1, 1])
 
-    plane = p.loadURDF("plane.urdf")
-    with LockRenderer():
-        with HideOutput(True):
-            robot = load_pybullet(FRANKA_URDF, fixed_base=True)
-    import ipdb; ipdb.set_trace()
-    for i in range(plan.getStateCount()):
-        state = plan.getState(i)
-        conf = state_to_joints(state)
-        robot.set_joints(conf)
+# def state_to_joints(state, num_joints=7):
+    # return [state[i] for i in range(num_joints)]
+
+
+# def show_plan(plan):
+    # connect(use_gui=True)
+    # add_data_path()
+    # draw_pose(Pose(), length=1.)
+    # set_camera_pose(camera_point=[1, -1, 1])
+
+    # plane = p.loadURDF("plane.urdf")
+    # with LockRenderer():
+        # with HideOutput(True):
+            # robot = load_pybullet(FRANKA_URDF, fixed_base=True)
+    # import ipdb; ipdb.set_trace()
+    # for i in range(plan.getStateCount()):
+        # state = plan.getState(i)
+        # conf = state_to_joints(state)
+        # robot.set_joints(conf)
 
 
 if __name__ == "__main__":
