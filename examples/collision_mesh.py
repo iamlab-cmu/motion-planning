@@ -8,8 +8,6 @@ import pybullet as p
 import time
 
 
-# import pybullet_utils.utils as pb_utils
-
 def load_robot():
     pb_utils.add_data_path()
     franka_urdf = find_franka_urdf()

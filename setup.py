@@ -3,7 +3,10 @@
 
 from setuptools import setup
 
-requirements = ["pybullet"
+requirements = ["numpy", #needs to be installed before pybullet
+                "pybullet",
+                "pillar_state",
+                "omegaconf"
 ]
 
 setup(name='motion_planning',
