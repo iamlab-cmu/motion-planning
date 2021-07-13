@@ -1,3 +1,5 @@
 defaults:
   - robot: franka
   - task: freespace_move
+collision_checking:
+  gui: False

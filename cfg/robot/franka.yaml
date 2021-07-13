@@ -1,5 +1,5 @@
+robot_name: franka
 path_to_urdf: 'assets/franka_description/robots/franka_panda_dynamics.urdf'
-
 active_joints:
   - panda_joint1
   - panda_joint2

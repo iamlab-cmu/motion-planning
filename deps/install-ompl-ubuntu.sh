@@ -85,7 +85,7 @@ install_ompl()
     fi
     mkdir -p build/Release
     cd build/Release
-    cmake ../.. -DPYTHON_EXEC=${which python}
+    cmake ../.. -DPYTHON_EXEC=$(which python)
     if [ ! -z $PYTHON ]; then
         # Check if the total memory is less than 6GB.
         if [ `cat /proc/meminfo | head -1 | awk '{print $2}'` -lt 6291456 ]; then
