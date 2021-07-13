@@ -11,15 +11,16 @@ def make_box_pointcloud():
     box_x_len = 0.05
     points = np.array([
         [0, 0, 0],
-        [0, 0, box_height],
-        [0,box_x_len, box_height],
-        [0,box_x_len, 0],
-        [box_x_len, box_y_len, box_height],
-        [box_x_len, box_y_len, 0],
+        [box_x_len,0, 0],
         [0, box_y_len,0],
+        [box_x_len, box_y_len, 0],
+        [box_x_len, box_y_len, box_height],
         [0, box_y_len,box_height],
+        [0, 0, box_height],
+        [box_x_len,0, box_height],
     ])
     return points
+     
 
 def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg):
     pillar_state = State()
@@ -39,7 +40,7 @@ def test_2_boxes_not_in_collision():
                            "box2":Box([cube_length, cube_length, cube_length])}
     collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg)
     assert not collision_checker.pillar_state_in_collision()
-    print("Test passed")
+    collision_checker.close()
 
 def test_3_boxes_in_collision():
     object_name_to_pose = {"box1": [0.1,0,0.05,0,0,0,1],
@@ -50,8 +51,8 @@ def test_3_boxes_in_collision():
                                "box2":Box([cube_length, cube_length, cube_length]),
                                "box3": Box([cube_length, cube_length, cube_length])}
     collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg)
-    assert not collision_checker.pillar_state_in_collision()
-    print("Test passed")
+    assert collision_checker.pillar_state_in_collision()
+    collision_checker.close()
 
 def test_2_meshes_not_in_collision():
     points = make_box_pointcloud()
@@ -61,9 +62,19 @@ def test_2_meshes_not_in_collision():
                                "mesh2":PointCloud(points)}
     collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg)
     assert not collision_checker.pillar_state_in_collision()
-    print("Test passed")
+    collision_checker.close()
+
+def test_2_meshes_in_collision():
+    points = make_box_pointcloud()
+    object_name_to_pose = {"mesh1": [0.5,0,0.05,0,0,0,1],
+                           "mesh2": [0.5, 0.00, 0.05, 0, 0, 0, 1]}
+    object_name_to_geometry = {"mesh1":PointCloud(points),
+                               "mesh2":PointCloud(points)}
+    collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg)
+    assert collision_checker.pillar_state_in_collision()
+    collision_checker.close()
 
 def test_disabled_collisions():
     pass
 
-test_2_meshes_not_in_collision()
+test_2_meshes_in_collision()

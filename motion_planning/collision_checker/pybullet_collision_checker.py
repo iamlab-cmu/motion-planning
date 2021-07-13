@@ -4,6 +4,7 @@ import sys
 sys.path.insert(0, '/home/lagrassa/git/pybullet-planning')
 
 import pybullet as p
+from itertools import product
 import pybullet_tools.utils as pb_utils
 from .base_collision_checker import BaseCollisionChecker
 from .collision_check_utils import object_geometry_to_pybullet_object, get_pb_pose_from_pillar_state
@@ -28,15 +29,27 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._update_collision_fn()
         self._disabled_collisions = disabled_collisions
 
+    def _workspace_collisions(self):
+        """
+        Collisions between objects in the workspace (not caused by robot pose)
+        """
+        for body1, body2 in product(self._obstacles, self._obstacles):
+            if (body1 == body2):
+                continue
+            if pb_utils.pairwise_link_collision(body1, -1, body2, -1): #-1 for base link
+                return True
+        return False
 
-    def _joint_conf_in_collision(self, conf, disabled_collisions=()):
+
+    def _joint_conf_in_collision(self, conf, check_obstacle_collisions=True, disabled_collisions=()):
         """
 
         :param conf:
         :return: whether the robot with configuration conf will collide
         with obstacles in the scene (besides those in disabled_collisions)
         """
-        self.pb_collision_fn(conf)
+        return self.pb_robot_collision_fn(conf)
+        
 
 
     def _setup_env(self, vis=False):
@@ -54,13 +67,15 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
                 self._object_name_to_geometry[object_name])
             obj_pose = get_pb_pose_from_pillar_state(self._pillar_state, object_name)
             pb_utils.set_pose(self._object_name_to_object_id[object_name], obj_pose)
-        input("Workspace OK?")
 
     def pillar_state_in_collision(self):
         joint_conf = self._pillar_state.get_values_as_vec([f"frame:{self._robot_name}:joint_positions"])
-        return self._joint_conf_in_collision(joint_conf)
+        return self._joint_conf_in_collision(joint_conf) or self._workspace_collisions()
 
     def _update_collision_fn(self):
-        obstacles = self._object_name_to_object_id.values()
-        self.pb_collision_fn = pb_utils.get_collision_fn(self.robot, self._movable_joints, obstacles=obstacles, attachments=[], self_collisions=True, disabled_collisions=set(),
+        self._obstacles = self._object_name_to_object_id.values()
+        self.pb_robot_collision_fn = pb_utils.get_collision_fn(self.robot, self._movable_joints, obstacles=self._obstacles, attachments=[], self_collisions=True, disabled_collisions=set(),
                                                          custom_limits={}, max_distance=self._max_distance) #TODO lagrassa pass in disabled colisions
+    def close(self):
+        pb_utils.disconnect()
+       
