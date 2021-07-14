@@ -84,7 +84,8 @@ def show_plan(plan, start_pillar_state, object_name_to_geometry, active_joints, 
     for i in range(plan.getStateCount()):
         joint_positions = [plan.getState(i)[state_idx] for state_idx in range(len(active_joints))]
         display_env.set_conf(active_joint_numbers, joint_positions)
-        input("OK?")
+        if block:
+            input("OK?")
 
 
 # def state_to_joints(state, num_joints=7):
