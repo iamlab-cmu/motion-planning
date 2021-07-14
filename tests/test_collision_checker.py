@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
 import numpy as np
-from motion_planning.collision_checker.object_geometry import Box, PointCloud
+from motion_planning.envs.object_geometry import Box, PointCloud
 from motion_planning.collision_checker.pybullet_collision_checker import PyBulletCollisionChecker
 from pillar_state import State
 

@@ -3,6 +3,8 @@ import os
 import motion_planning
 from hydra.utils import to_absolute_path
 
+from motion_planning.envs.object_geometry import PointCloud, Box
+
 
 def find_pb_tools_path_from_module():
     module_path = find_motion_planning_module()
@@ -50,3 +52,22 @@ def joint_names_to_link_numbers(robot, joint_names):
         link_number = all_link_names.index(link_name)
         link_numbers.append(link_number)
     return link_numbers
+
+
+def object_geometry_to_pybullet_object(object_geometry):
+    if isinstance(object_geometry, PointCloud):
+        mesh = pb_utils.mesh_from_points(object_geometry.points)
+        obj_from_mesh = pb_utils.create_mesh(mesh)
+        return obj_from_mesh
+    elif isinstance(object_geometry, Box):
+        return pb_utils.create_box(*object_geometry.dims)
+    else:
+        raise ValueError(f"Invalid object geometry type: {object_geometry} ")
+
+
+def get_pb_pose_from_pillar_state(pillar_state, obj_name):
+    pose_arr = pillar_state.get_values_as_vec([f"frame:{obj_name}:pose/position", f"frame:{obj_name}:pose/quaternion"])
+    position = pose_arr[:3]
+    wxyz_quaternion = pose_arr[3:]
+    xyzw_quaternion = wxyz_quaternion[1:] + [wxyz_quaternion[0]]
+    return (position, xyzw_quaternion)
