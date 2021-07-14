@@ -8,3 +8,4 @@ active_joints:
   - panda_joint5
   - panda_joint6
   - panda_joint7
+grasp_link: panda_joint1

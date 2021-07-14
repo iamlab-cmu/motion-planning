@@ -1,15 +1,14 @@
 import hydra
 from hydra.utils import to_absolute_path
-import numpy as np
 
 from urdfpy import URDF
 
 from pillar_state import State
 
-from motion_planning.utils import add_ompl_to_sys_path, find_robot_urdf, joint_names_to_link_numbers
+from motion_planning.utils import add_ompl_to_sys_path
 from motion_planning.collision_checker import PyBulletCollisionChecker
-from motion_planning.envs.pybullet_robot_env import PyBulletRobotEnv
-from motion_planning.envs.object_geometry import Box, PointCloud
+from motion_planning.envs.object_geometry import Box
+from motion_planning.utils.visualization_utils import show_plan
 
 add_ompl_to_sys_path()
 from ompl import base as ob
@@ -74,18 +73,6 @@ def main(cfg):
     plan = ss.getSolutionPath()
     collision_checker.close()
     show_plan(plan, pillar_state, object_name_to_geometry, active_joints, cfg)
-
-
-def show_plan(plan, start_pillar_state, object_name_to_geometry, active_joints, cfg, block=True):
-    robot_urdf_fn = find_robot_urdf(cfg["robot"]["path_to_urdf"])
-    display_env = PyBulletRobotEnv(start_pillar_state, object_name_to_geometry, robot_urdf_fn, vis=True)
-    active_joint_numbers = joint_names_to_link_numbers(display_env.robot, active_joints)
-    print(plan.length())
-    for i in range(plan.getStateCount()):
-        joint_positions = [plan.getState(i)[state_idx] for state_idx in range(len(active_joints))]
-        display_env.set_conf(active_joint_numbers, joint_positions)
-        if block:
-            input("OK?")
 
 
 def make_simple_start_state(robot_name, start_conf):

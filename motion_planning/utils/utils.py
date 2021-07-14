@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 import os
 import motion_planning
 from hydra.utils import to_absolute_path
@@ -71,3 +72,9 @@ def get_pb_pose_from_pillar_state(pillar_state, obj_name):
     wxyz_quaternion = pose_arr[3:]
     xyzw_quaternion = wxyz_quaternion[1:] + [wxyz_quaternion[0]]
     return (position, xyzw_quaternion)
+
+
+def joint_conf_from_pillar_state(pillar_state, robot_name, active_joint_numbers):
+    joint_conf = np.array(pillar_state.get_values_as_vec([f"frame:{robot_name}:joint_positions"]))[
+        active_joint_numbers]
+    return joint_conf
