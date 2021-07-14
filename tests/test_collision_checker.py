@@ -1,6 +1,6 @@
 from omegaconf import OmegaConf
 import numpy as np
-from motion_planning.collision_checker.object_geometry import Box, PointCloud
+from motion_planning.envs.object_geometry import Box, PointCloud
 from motion_planning.collision_checker.pybullet_collision_checker import PyBulletCollisionChecker
 from pillar_state import State
 
@@ -24,7 +24,7 @@ def make_box_pointcloud():
     return points
 
 
-def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg):
+def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg, attached_object_names=[]):
     pillar_state = State()
     joint_positions = [0., 0., 0., -1.5708, 0., 1.8675, 0., 0.02, 0.02]
     pillar_state.update_property("frame:franka:joint_positions", joint_positions)
@@ -32,7 +32,7 @@ def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg):
         pillar_state.update_property(f"frame:{object_name}:pose/position", object_name_to_pose[object_name][:3])
         pillar_state.update_property(f"frame:{object_name}:pose/quaternion", object_name_to_pose[object_name][3:])
     active_joints = [f"panda_joint{i}" for i in range(1, 8)]
-    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg)
+    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg, attached_object_names=attached_object_names)
 
 
 def test_2_boxes_not_in_collision():
@@ -80,6 +80,22 @@ def test_2_meshes_in_collision():
     assert collision_checker.pillar_state_in_collision()
     collision_checker.close()
 
+def test_attachments():
+    object_name_to_pose = {"box1": [0.6, 0, 0.48, 0, 0, 0, 1]}
+    cube_length = 0.05
+    object_name_to_geometry = {"box1": Box([cube_length, cube_length, cube_length])}
+    attached_object_names = ["box1"]
+    collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg, attached_object_names=attached_object_names)
+    input("OK?")
+
+    assert not collision_checker.pillar_state_in_collision()
+    new_joint_conf = [0,-.15, 0, -2.25, 0, 2.3, .79]
+    collision_checker.joint_conf_in_collision(new_joint_conf)
+    input("OK?")
+    collision_checker.close()
+
 
 def test_disabled_collisions():
     pass
+
+test_attachments()
