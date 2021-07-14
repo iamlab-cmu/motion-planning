@@ -31,6 +31,7 @@ def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg, ro
                            attached_object_names=[]):
     pillar_state = State()
     joint_positions = [0., 0., 0., -1.5708, 0., 1.8675, 0., 0.02, 0.02]
+    joint_positions = [0, -np.pi / 4, 0, -3 * np.pi / 4, 0, np.pi / 2, np.pi / 4]
     pillar_state.update_property("frame:franka:joint_positions", joint_positions)
     if robot_model is None:
         robot_model = PyBulletRobotModel(cfg.robot)
@@ -92,16 +93,20 @@ def test_2_meshes_in_collision():
 
 
 def test_attachments():
-    object_name_to_pose = {"box1": [0.6, 0, 0.48, 0, 0, 0, 1]}
-    cube_length = 0.05
-    object_name_to_geometry = {"box1": Box([cube_length, cube_length, cube_length])}
+    object_name_to_pose = {"box1": [0.31, 0, 0.45, 0, 0, 0, 1],
+                           "box2": [0.52, 0, 0.32, 0, 0, 0, 1]}
+    side_length_short = 0.02
+    side_length_long = 0.08
+    height = 0.03
+
+    object_name_to_geometry = {"box1": Box([side_length_short, side_length_long, height]),
+                               "box2": Box([0.05, 0.05, 0.05])}
     attached_object_names = ["box1"]
     collision_checker = make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg,
                                                attached_object_names=attached_object_names)
-
     assert not collision_checker.pillar_state_in_collision()
     new_joint_conf = [0, -.15, 0, -2.25, 0, 2.3, .79]
-    collision_checker.joint_conf_in_collision(new_joint_conf)
+    assert collision_checker.joint_conf_in_collision(new_joint_conf)
     collision_checker.close()
 
 
