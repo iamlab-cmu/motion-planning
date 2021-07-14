@@ -9,6 +9,7 @@ from pillar_state import State
 from motion_planning.utils import add_ompl_to_sys_path, find_robot_urdf, joint_names_to_link_numbers
 from motion_planning.collision_checker import PyBulletCollisionChecker
 from motion_planning.envs.pybullet_robot_env import PyBulletRobotEnv
+from motion_planning.envs.object_geometry import Box, PointCloud
 
 add_ompl_to_sys_path()
 from ompl import base as ob
@@ -55,10 +56,9 @@ def main(cfg):
     space = get_state_space(cfg.robot)
 
     # create a simple setup object
-    pillar_state = State()  # TODO lagrassa make sure synced with state
-    pillar_state.update_property(f"frame:{cfg.robot.robot_name}:joint_positions", cfg.task.start_joints)
+    pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+    pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
     active_joints = cfg.robot.active_joints
-    object_name_to_geometry = {}
     collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg)
     ss = og.SimpleSetup(space)
     ss.setStateValidityChecker(
@@ -88,9 +88,30 @@ def show_plan(plan, start_pillar_state, object_name_to_geometry, active_joints, 
             input("OK?")
 
 
+def make_simple_start_state(robot_name, start_conf):
+    pillar_state = State()
+    pillar_state.update_property(f"frame:{robot_name}:joint_positions", start_conf)
+    return pillar_state, {}
+
+
+def make_constrained_start_state(robot_name, start_conf):
+    pillar_state = State()
+    pillar_state.update_property(f"frame:{robot_name}:joint_positions", start_conf)
+    short_side_len = 0.05
+    height = 0.3
+    box_xy_locs = [[0.4, 0], [0.4, 0.1]]
+    box_z = height / 2 + 0.001
+    dims = [short_side_len, short_side_len, height]
+    object_name_to_geometry = {f"box{i}": Box(dims) for i, _ in enumerate(box_xy_locs)}
+    for i, loc in enumerate(box_xy_locs):
+        pillar_state.update_property(f"frame:box{i}:pose/position", loc + [box_z, ])
+        pillar_state.update_property(f"frame:box{i}:pose/quaternion", [1, 0, 0, 0])
+
+    return pillar_state, object_name_to_geometry
+
+
 # def state_to_joints(state, num_joints=7):
 # return [state[i] for i in range(num_joints)]
-
 
 # def show_plan(plan):
 # connect(use_gui=True)

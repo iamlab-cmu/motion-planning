@@ -3,3 +3,4 @@ defaults:
   - task: freespace_move
 collision_checking:
   gui: False
+simplify_solution: True

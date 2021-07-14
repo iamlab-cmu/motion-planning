@@ -11,13 +11,13 @@ goal:
   type: 'jointspace' #cartesian'
   jointspace:
     joints:
-      - 0.5
-      - -0.65
       - 0.0
-      - -2.96
+      - -0.15
+      - 0.0
+      - -2.26
       - 0.0
       - 2.3
-      - 0.59
+      - 0.79
     tol: 0.1
 
   cartesian:
