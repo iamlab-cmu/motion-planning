@@ -10,6 +10,8 @@ from motion_planning.collision_checker import PyBulletCollisionChecker
 from motion_planning.models.object_geometry import Box
 from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
 from motion_planning.utils.visualization_utils import show_plan
+from motion_planning.planners import MaintainOrientation
+from motion_planning.iam_motion_planner import IAMMotionPlanner
 
 add_ompl_to_sys_path()
 from ompl import base as ob
@@ -53,7 +55,10 @@ def get_start_and_goal(space, cfg):
 
 @hydra.main(config_path="../cfg", config_name="run_franka_planner")
 def main(cfg):
-    space = get_state_space(cfg.robot)
+    # space = get_state_space(cfg.robot)
+    planner = IAMMotionPlanner(cfg)
+
+    import IPython; IPython.embed(); exit()
 
     # create a simple setup object
     pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)

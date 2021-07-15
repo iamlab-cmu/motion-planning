@@ -50,3 +50,7 @@ class PyBulletRobotModel:
         if return_ik_joint_indices:
             return ik_joints, conf
         return conf
+
+    def get_joint_limits(self, joint):
+        # return pb_utils.get_joint_limits(self.object_index, joint)
+        return 0, 1

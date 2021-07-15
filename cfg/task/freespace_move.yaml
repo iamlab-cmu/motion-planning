@@ -30,4 +30,3 @@ goal:
       - yaw: 0.0
     tol_xyz: 0.05
     tol_rpy: 0.1
-
