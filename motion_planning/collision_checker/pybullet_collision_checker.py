@@ -10,11 +10,12 @@ import pybullet_tools.utils as pb_utils
 from .base_collision_checker import BaseCollisionChecker
 from motion_planning.utils import object_geometry_to_pybullet_object, get_pb_pose_from_pillar_state, \
     joint_conf_from_pillar_state
-from ..envs.pybullet_robot_env import PyBulletRobotEnv
+from ..models.pybullet_robot_env import PyBulletRobotEnv
 
 
 class PyBulletCollisionChecker(BaseCollisionChecker):
-    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, disabled_collisions=[],
+    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, robot_model=None,
+                 disabled_collisions=[],
                  attached_object_names=[]):
         """
 
@@ -23,18 +24,19 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         :param cfg:
         :param disabled_collisions:
         """
-        super().__init__(pillar_state, object_name_to_geometry, active_joints, cfg)
+        super().__init__(pillar_state, object_name_to_geometry, active_joints, cfg, robot_model)
         self._cfg = cfg
         self._max_distance = 0
         self._robot_name = cfg["robot"]["robot_name"]
+        self._robot_model = robot_model
         self._env = PyBulletRobotEnv(pillar_state,
                                      object_name_to_geometry,
-                                     self._robot_urdf_fn,
+                                     self._robot_model,
                                      vis=cfg["collision_checking"]["gui"])
         self._disabled_collisions = disabled_collisions
-        self._active_joint_numbers = joint_names_to_link_numbers(self._env.robot, self._active_joints)
+        self._active_joint_numbers = joint_names_to_link_numbers(self._robot_model, self._active_joints)
         self._attached_object_names = attached_object_names
-        self._grasp_link = joint_names_to_link_numbers(self._env.robot, [cfg.robot.grasp_link])[0]
+        self._grasp_link = joint_names_to_link_numbers(self._robot_model, [cfg.robot.grasp_link])[0]
         self._update_collision_fn()
 
     def _workspace_collisions(self):
@@ -67,11 +69,11 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
 
     def make_attachments(self):
         attachments = []
-        robot_to_world = pb_utils.get_link_pose(self._env.robot, self._grasp_link)
+        robot_to_world = pb_utils.get_link_pose(self._robot_model.object_index, self._grasp_link)
         for obj_name in self._attached_object_names:
             obj_to_world = pb_utils.get_link_pose(self._env.object_name_to_object_id[obj_name], -1)
             grasp = pb_utils.multiply(pb_utils.invert(robot_to_world), obj_to_world)
-            attachment = pb_utils.Attachment(self._env.robot, self._grasp_link, grasp,
+            attachment = pb_utils.Attachment(self._robot_model.object_index, self._grasp_link, grasp,
                                              self._env.object_name_to_object_id[obj_name])
             attachment.assign()
             attachments.append(attachment)
@@ -82,10 +84,11 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
             self._attached_object_names = new_attachment_names
         start_joint_positions = joint_conf_from_pillar_state(self._pillar_state, self._robot_name,
                                                              self._active_joint_numbers)
-        self._env.set_conf(self._active_joint_numbers, start_joint_positions)
+        self._robot_model.set_conf(self._active_joint_numbers, start_joint_positions)
         self._obstacles = self._env.object_name_to_object_id.values()
         attachments = self.make_attachments()
-        self._pb_robot_collision_fn = pb_utils.get_collision_fn(self._env.robot, self._active_joint_numbers,
+        self._pb_robot_collision_fn = pb_utils.get_collision_fn(self._robot_model.object_index,
+                                                                self._active_joint_numbers,
                                                                 obstacles=self._obstacles, attachments=attachments,
                                                                 self_collisions=True, disabled_collisions=set(),
                                                                 custom_limits={},

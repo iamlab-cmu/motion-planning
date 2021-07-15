@@ -7,7 +7,8 @@ from pillar_state import State
 
 from motion_planning.utils import add_ompl_to_sys_path
 from motion_planning.collision_checker import PyBulletCollisionChecker
-from motion_planning.envs.object_geometry import Box
+from motion_planning.models.object_geometry import Box
+from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
 from motion_planning.utils.visualization_utils import show_plan
 
 add_ompl_to_sys_path()
@@ -58,7 +59,9 @@ def main(cfg):
     pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
     pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
     active_joints = cfg.robot.active_joints
-    collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg)
+    robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
+    collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg,
+                                                 robot_model=robot_model)
     ss = og.SimpleSetup(space)
     ss.setStateValidityChecker(
         ob.StateValidityCheckerFn(lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
@@ -72,7 +75,7 @@ def main(cfg):
         ss.simplifySolution()
     plan = ss.getSolutionPath()
     collision_checker.close()
-    show_plan(plan, pillar_state, object_name_to_geometry, active_joints, cfg)
+    show_plan(plan, pillar_state, object_name_to_geometry, active_joints, robot_model)
 
 
 def make_simple_start_state(robot_name, start_conf):

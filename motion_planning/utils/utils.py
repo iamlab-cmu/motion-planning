@@ -5,7 +5,7 @@ import motion_planning
 from autolab_core import RigidTransform
 from hydra.utils import to_absolute_path
 
-from motion_planning.envs.object_geometry import PointCloud, Box
+from motion_planning.models.object_geometry import PointCloud, Box
 
 
 def find_pb_tools_path_from_module():
@@ -43,12 +43,12 @@ def add_ompl_to_sys_path():
     sys.path.insert(0, path_to_ompl)
 
 
-def joint_names_to_link_numbers(robot, joint_names):
+def joint_names_to_link_numbers(robot_model, joint_names):
     # TODO lagrassa not sure how robust this is outside the franka
     link_names = [joint_name.replace("joint", "link") for joint_name in joint_names]
-    all_links = pb_utils.get_all_links(robot)
+    all_links = pb_utils.get_all_links(robot_model.object_index)
     all_links.remove(-1)  # Not counting base link
-    all_link_names = pb_utils.get_link_names(robot, all_links)
+    all_link_names = pb_utils.get_link_names(robot_model.object_index, all_links)
     link_numbers = []
     for link_name in link_names:
         link_number = all_link_names.index(link_name)
@@ -59,9 +59,16 @@ def joint_names_to_link_numbers(robot, joint_names):
 def pb_pose_to_RigidTransform(pb_pose):
     translation = pb_pose[0]
     xyzw_quaternion = pb_pose[1]
-    wxyz_quaternion = [xyzw_quaternion[-1], ] + xyz_quaternion[:-1]
+    wxyz_quaternion = [xyzw_quaternion[-1], ] + xyzw_quaternion[:-1]
     rotation = RigidTransform.rotation_from_quaternion(wxyz_quaternion)
     return RigidTransform(translation=translation, rotation=rotation)
+
+
+def RigidTransform_to_pb_pose(rt):
+    position = rt.translation
+    wxyz_quaternion = rt.quaternion[3:]
+    xyzw_quaternion = wxyz_quaternion[1:] + [wxyz_quaternion[0]]
+    return (position, xyzw_quaternion)
 
 
 def object_geometry_to_pybullet_object(object_geometry):
