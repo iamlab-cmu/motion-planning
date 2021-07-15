@@ -8,6 +8,7 @@ requirements = ["numpy", #needs to be installed before pybullet
                 "pillar_state",
                 "urdfpy", 
                 "hydra_core",
+                "autolab_core",
                 "omegaconf"
 ]
 

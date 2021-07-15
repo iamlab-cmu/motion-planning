@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import os
 import motion_planning
+from autolab_core import RigidTransform
 from hydra.utils import to_absolute_path
 
 from motion_planning.envs.object_geometry import PointCloud, Box
@@ -53,6 +54,14 @@ def joint_names_to_link_numbers(robot, joint_names):
         link_number = all_link_names.index(link_name)
         link_numbers.append(link_number)
     return link_numbers
+
+
+def pb_pose_to_RigidTransform(pb_pose):
+    translation = pb_pose[0]
+    xyzw_quaternion = pb_pose[1]
+    wxyz_quaternion = [xyzw_quaternion[-1], ] + xyz_quaternion[:-1]
+    rotation = RigidTransform.rotation_from_quaternion(wxyz_quaternion)
+    return RigidTransform(translation=translation, rotation=rotation)
 
 
 def object_geometry_to_pybullet_object(object_geometry):
