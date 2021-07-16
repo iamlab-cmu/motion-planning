@@ -14,13 +14,13 @@ add_ompl_to_sys_path()
 def main(cfg):
     planner = IAMMotionPlanner(cfg)
     start, object_name_to_geometry = make_constrained_pillar_state(cfg.robot.robot_name,
-                                     cfg.task.start_joints)
+                                                                   cfg.task.start_joints)
     goal = JointGoal(cfg.task.goal.jointspace.joints)
     solution_path = planner.replan(start, goal, max_planning_time=5, object_name_to_geometry=object_name_to_geometry)
 
-    if solution_path is not None:
-        last_joints = planner.visualize_plan(solution_path)
-    assert np.allclose(last_joints, goal.goal_data, atol = 0.01)
+    if cfg.vis_plan and solution_path is not None:
+        last_joints = planner.visualize_plan(solution_path, block=False, duration=2)
+    assert np.allclose(last_joints, goal.goal_data, atol=0.01)
     planner.close()
 
 
