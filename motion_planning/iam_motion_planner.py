@@ -1,9 +1,8 @@
-from hydra.utils import to_absolute_path
-
 from motion_planning.collision_checker import PyBulletCollisionChecker
-from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
 from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
+from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
 from motion_planning.utils import (add_ompl_to_sys_path)
+
 add_ompl_to_sys_path()
 from ompl import base as ob
 from ompl import geometric as og
@@ -31,7 +30,7 @@ class IAMMotionPlanner():
     def replan(self, start_pillar_state, goal_pillar_state, max_planning_time, object_name_to_geometry=None):
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
-                start_pillar_state, {}, self._active_joints, self._cfg)
+                start_pillar_state, {}, self._active_joints, self._cfg, self._env, robot_model=self._robot_model)
             self._set_collision_checker(collision_checker)
         else:
             self._collision_checker.update_state(start_pillar_state)

@@ -1,5 +1,4 @@
-from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
-from motion_planning.utils import find_robot_urdf
+from ..models.pybullet_robot_env import PyBulletRobotEnv
 
 
 def show_plan(plan, start_pillar_state, object_name_to_geometry, active_joints, robot_model, block=True):

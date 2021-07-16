@@ -1,11 +1,13 @@
-import sys
-import numpy as np
 import os
-import motion_planning
+import sys
+
+import numpy as np
 from autolab_core import RigidTransform
 from hydra.utils import to_absolute_path
 
-from motion_planning.models.object_geometry import PointCloud, Box
+import motion_planning
+import motion_planning.pybullet_tools.utils as pb_utils
+from ..models.object_geometry import PointCloud, Box
 
 
 def find_pb_tools_path_from_module():
@@ -19,20 +21,6 @@ def find_motion_planning_module():
     return module_path
 
 
-def add_pb_tools_if_not_on_path():
-    path = sys.path
-    for dir in path:
-        if "pybullet_tools" in dir:
-            return
-    print("Did not find pybullet_tools. Adding to path")
-    pb_tools_path = find_pb_tools_path_from_module()
-    sys.path.append(pb_tools_path)
-
-
-add_pb_tools_if_not_on_path()
-import pybullet_tools.utils as pb_utils
-
-
 def find_robot_urdf(urdf_path):
     module_path = find_motion_planning_module()
     return os.path.join(module_path, "../", urdf_path)
@@ -41,6 +29,26 @@ def find_robot_urdf(urdf_path):
 def add_ompl_to_sys_path():
     path_to_ompl = to_absolute_path('deps/ompl-1.5.2/py-bindings')
     sys.path.insert(0, path_to_ompl)
+
+
+def joint_names_to_joint_numbers(robot_model, joint_names):
+    all_joints = pb_utils.get_joints(robot_model.object_index)
+    all_joint_names = pb_utils.get_joint_names(robot_model.object_index, all_joints)
+    joint_numbers = []
+    for joint_name in joint_names:
+        joint_number = all_joint_names.index(joint_name)
+        joint_numbers.append(joint_number)
+    return joint_numbers
+
+
+def link_names_to_link_numbers(robot_model, link_names):
+    all_links = pb_utils.get_all_links(robot_model.object_index)
+    all_link_names = pb_utils.get_link_names(robot_model.object_index, all_links)
+    link_numbers = []
+    for link_name in link_names:
+        link_number = all_link_names.index(link_name)
+        link_numbers.append(link_number)
+    return link_numbers
 
 
 def pb_pose_to_RigidTransform(pb_pose):

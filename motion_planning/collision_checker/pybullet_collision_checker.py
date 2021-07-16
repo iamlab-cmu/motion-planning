@@ -1,20 +1,13 @@
-from abc import ABC, abstractmethod
-from ..utils.utils import add_pb_tools_if_not_on_path
-
 from copy import deepcopy
-add_pb_tools_if_not_on_path()
-import pybullet as p
 from itertools import product
-import numpy as np
 
-import pybullet_tools.utils as pb_utils
-from .base_collision_checker import BaseCollisionChecker
+import motion_planning.pybullet_tools.utils as pb_utils
 from motion_planning.utils import joint_conf_from_pillar_state
-from ..models.pybullet_robot_env import PyBulletRobotEnv
+from .base_collision_checker import BaseCollisionChecker
 
 
 class PyBulletCollisionChecker(BaseCollisionChecker):
-    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, robot_model=None,
+    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, env, robot_model=None,
                  disabled_collisions=[],
                  attached_object_names=[]):
         """
@@ -29,10 +22,7 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._max_distance = 0
         self._robot_name = cfg["robot"]["robot_name"]
         self._robot_model = robot_model
-        self._env = PyBulletRobotEnv(pillar_state,
-                                     object_name_to_geometry,
-                                     self._robot_model,
-                                     vis=cfg["collision_checking"]["gui"])
+        self._env = env
         self._disabled_collisions = disabled_collisions
         self._active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
         self._attached_object_names = attached_object_names

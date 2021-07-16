@@ -1,9 +1,11 @@
-from omegaconf import OmegaConf
 import numpy as np
-from motion_planning.models.object_geometry import Box, PointCloud
-from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
-from motion_planning.collision_checker.pybullet_collision_checker import PyBulletCollisionChecker
+from omegaconf import OmegaConf
 from pillar_state import State
+
+from motion_planning.collision_checker.pybullet_collision_checker import PyBulletCollisionChecker
+from motion_planning.models.object_geometry import Box, PointCloud
+from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
+from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
 
 cfg = OmegaConf.load("cfg/collision_checker.yaml")
 
@@ -36,7 +38,10 @@ def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg, ro
         pillar_state.update_property(f"frame:{object_name}:pose/position", object_name_to_pose[object_name][:3])
         pillar_state.update_property(f"frame:{object_name}:pose/quaternion", object_name_to_pose[object_name][3:])
     active_joints = [f"panda_joint{i}" for i in range(1, 8)]
-    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg, robot_model=robot_model,
+    env = PyBulletRobotEnv(robot_model, vis=cfg.collision_checking.gui)
+    env.initialize_workspace(pillar_state, object_name_to_geometry)
+    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg, env,
+                                    robot_model=robot_model,
                                     attached_object_names=attached_object_names)
 
 
@@ -102,6 +107,3 @@ def test_attachments():
 
 def test_disabled_collisions():
     pass
-
-
-test_attachments()
