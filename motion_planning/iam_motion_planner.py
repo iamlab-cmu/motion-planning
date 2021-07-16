@@ -14,18 +14,24 @@ class IAMMotionPlanner():
         self._active_joints = self._robot_cfg.active_joints
         self._ndims = len(self._active_joints)
         # self._planner = cfg.planner
-        self._cfg = cfg
 
         # robot
         self._robot_model = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
-        self._env = PyBulletRobotEnv(self._robot_model, self._cfg.gui)
+        self._env = PyBulletRobotEnv(self._robot_model, cfg.gui)
 
         # planning space
         self._pspace = self._init_state_space(cfg)
         self._ompl_simple_setup = og.SimpleSetup(self._pspace)
         self._set_collision_checker(collision_checker)
 
+        # planner
+        self._motion_planner_type = cfg.planner_type
+        si = self._ompl_simple_setup.getSpaceInformation()
+        self._motion_planner = self._allocate_planner(si, cfg.planner_type)
+        self._ompl_simple_setup.setPlanner(self._motion_planner)
+
         # TODO constraints
+        self._cfg = cfg
 
     def replan(self, start_pillar_state, goal_pillar_state, max_planning_time, object_name_to_geometry={}):
         if self._collision_checker is None:
@@ -46,6 +52,14 @@ class IAMMotionPlanner():
             return self._ompl_simple_setup.getSolutionPath()
         else:
             return None
+
+    def visualize_plan(self, solution_path, block=True):
+        active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
+        for i in range(solution_path.getStateCount()):
+            joint_positions = [solution_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
+            self._robot_model.set_conf(active_joint_numbers, joint_positions)
+            if block:
+                input("OK?")
 
     def close(self):
         self._collision_checker.close()
@@ -68,6 +82,24 @@ class IAMMotionPlanner():
         self._ompl_simple_setup.setStateValidityChecker(ob.StateValidityCheckerFn(
             lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
 
+    def _allocate_planner(self, si, planner_type):
+        if planner_type.lower() == "rrt":
+            return og.RRT(si)
+        elif planner_type.lower() == "rrtstar":
+            return og.RRTstar(si)
+        elif planner_type.lower() == "bfmtstar":
+            return og.BFMT(si)
+        elif planner_type.lower() == "bitstar":
+            return og.BITstar(si)
+        elif planner_type.lower() == "fmtstar":
+            return og.FMT(si)
+        elif planner_type.lower() == "informedrrtstar":
+            return og.InformedRRTstar(si)
+        elif planner_type.lower() == "prmstar":
+            return og.PRMstar(si)
+        else:
+            raise NotImplementedError("Planner-type is not implemented in allocation function.")
+
     def _pillar_state_to_ompl_state(self, pillar_state):
         """Extracts robot joints from the pillar state."""
         state = pillar_state.get_values_as_vec(
@@ -76,11 +108,3 @@ class IAMMotionPlanner():
         for i, joint in enumerate(state):
             ompl_state[i] = joint
         return ompl_state
-
-    def visualize_plan(self, solution_path, block=True):
-        active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
-        for i in range(solution_path.getStateCount()):
-            joint_positions = [solution_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
-            self._robot_model.set_conf(active_joint_numbers, joint_positions)
-            if block:
-                input("OK?")
