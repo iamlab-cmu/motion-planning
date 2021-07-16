@@ -28,17 +28,8 @@ def make_env(robot_model):
 def test_ik():
     robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
     env = make_env(robot_model)
-    # IKFastInfo = namedtuple('IKFastInfo', ['module_name', 'base_link', 'ee_link', 'free_joints'])
-    # info = IKFastInfo(module_name='franka_panda.ikfast_panda_arm', base_link='panda_link0', ee_link='panda_link7',
-    #                   free_joints=['panda_joint6'])
-    # tool_link = 7
-    # ik_joints = get_ik_joints(env.robot, info, tool_link)
     pos_tolerance = 1e-3
     ori_tolerance = 1e-3 * np.pi
-    # pb_kwargs = {"pos_tolerance": pos_tolerance, "ori_tolerance": ori_tolerance, "max_attempts": 5,
-    #              "max_time": 500000000, "fixed_joints": []}
-    # conf = run_and_time_ik(end_pose, env, tool_link, info, use_pybullet=False, **pb_kwargs)
-    # print(conf)
     tool_link = 7
     start_pose = pb_utils.get_link_pose(robot_model.object_index, tool_link)
     end_pose = pb_utils.multiply(start_pose, pb_utils.Pose(pb_utils.Point(x=0.02, z=-0.14)))
@@ -47,6 +38,18 @@ def test_ik():
     tool_pose_using_conf = pb_utils.get_link_pose(robot_model.object_index, tool_link)  # avoiding FK for testing
     assert pb_utils.is_point_close(end_pose[0], tool_pose_using_conf[0], tolerance=pos_tolerance)
     assert pb_utils.is_quat_close(end_pose[1], tool_pose_using_conf[1], tolerance=ori_tolerance)
+
+
+def test_joint_limits():
+    robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
+    env = make_env(robot_model)
+    # See https://frankaemika.github.io/docs/control_parameters.html
+    manually_parsed_joint_limits_low = [-2.9671, -1.8326, -2.9671, -3.0, -2.9671, -0.0873, -2.9671]
+    manually_parsed_joint_limits_high = [2.9671, 1.8326, 2.9671, 0.087, 2.9671, 3.0, 2.9671]
+    for joint_idx in range(7):
+        low, high = robot_model.get_joint_limits(joint_idx)
+        assert low == manually_parsed_joint_limits_low[joint_idx]
+        assert high == manually_parsed_joint_limits_high[joint_idx]
 
 
 def run_and_time_ik(end_pose, env, tool_link, info, use_pybullet=False, **kwargs):

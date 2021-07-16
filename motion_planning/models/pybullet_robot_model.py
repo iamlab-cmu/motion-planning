@@ -52,5 +52,4 @@ class PyBulletRobotModel:
         return conf
 
     def get_joint_limits(self, joint):
-        # return pb_utils.get_joint_limits(self.object_index, joint)
-        return 0, 1
+        return pb_utils.get_joint_limits(self.object_index, joint)

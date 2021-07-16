@@ -19,7 +19,7 @@ class IAMMotionPlanner():
         self._cfg = cfg
 
         # robot
-        self._robot = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
+        self._robot_model = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
         self._env = None
 
         # planning space
@@ -32,7 +32,7 @@ class IAMMotionPlanner():
             self._collision_checker = PyBulletCollisionChecker(
                 start_pillar_state, {}, self._active_joints, self._cfg)
         if self._env is None:
-            self._env = PyBulletRobotEnv(start_pillar_state, {}, self._robot,
+            self._env = PyBulletRobotEnv(start_pillar_state, {}, self._robot_model,
                                          self._cfg.gui)
 
         # if solved:
@@ -47,7 +47,7 @@ class IAMMotionPlanner():
         # set lower and upper bounds
         bounds = ob.RealVectorBounds(self._ndims)
         for i, active_joint in enumerate(self._active_joints):
-            lower, upper = self._robot.get_joint_limits(active_joint)
+            lower, upper = self._robot_model.get_joint_limits(active_joint)
             bounds.setLow(i, lower)
             bounds.setHigh(i, upper)
         state_space.setBounds(bounds)
