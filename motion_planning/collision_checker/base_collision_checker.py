@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from ..utils import find_robot_urdf
 
 
 class BaseCollisionChecker(ABC):

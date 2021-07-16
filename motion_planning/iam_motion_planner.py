@@ -1,7 +1,8 @@
 from motion_planning.collision_checker import PyBulletCollisionChecker
 from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
 from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
-from motion_planning.utils import (add_ompl_to_sys_path)
+from motion_planning.planning.goals import JointGoal, CartesianGoal
+from motion_planning.utils import add_ompl_to_sys_path
 
 add_ompl_to_sys_path()
 from ompl import base as ob
@@ -13,7 +14,6 @@ class IAMMotionPlanner():
         self._robot_cfg = cfg.robot
         self._active_joints = self._robot_cfg.active_joints
         self._ndims = len(self._active_joints)
-        # self._planner = cfg.planner
         self._cfg = cfg
 
         # robot
@@ -27,7 +27,7 @@ class IAMMotionPlanner():
 
         # TODO constraints
 
-    def replan(self, start_pillar_state, goal_info, max_planning_time, object_name_to_geometry={}):
+    def replan(self, start_pillar_state, goal, max_planning_time, object_name_to_geometry={}):
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
                 self._env, start_pillar_state, {}, self._active_joints,
@@ -37,10 +37,12 @@ class IAMMotionPlanner():
             self._collision_checker.update_state(start_pillar_state)
         self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
         start_ompl_state = self._pillar_state_to_ompl_state(start_pillar_state)
-        if goal_info["goal_type"] == "joints":
-            goal_ompl_state = self._make_joint_goal(goal_info["goal"])
+        if isinstance(goal, JointGoal):
+            goal_ompl_state = goal.get_ompl_state(self._pspace)
+        elif isinstance(goal, CartesianGoal):
+            goal_ompl_state = goal.get_ompl_state(self._pspace, self._robot_model)
         else:
-            raise ValueError(f"Unsupported goal type: {goal_info['goal_type']}")
+            raise ValueError(f"Unsupported goal type: {goal}")
         self._ompl_simple_setup.setStartAndGoalStates(start_ompl_state,
                                                       goal_ompl_state)
         solved = self._ompl_simple_setup.solve(max_planning_time)

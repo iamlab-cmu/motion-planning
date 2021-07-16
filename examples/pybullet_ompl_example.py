@@ -69,7 +69,6 @@ def show_plan(plan):
     with LockRenderer():
         with HideOutput(True):
             robot = load_pybullet(FRANKA_URDF, fixed_base=True)
-    import ipdb; ipdb.set_trace()
     for i in range(plan.getStateCount()):
         state = plan.getState(i)
         conf = state_to_joints(state)

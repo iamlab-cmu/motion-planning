@@ -3,28 +3,10 @@ from pillar_state import State
 
 from motion_planning.iam_motion_planner import IAMMotionPlanner
 from motion_planning.models.object_geometry import Box
+from motion_planning.planning.goals import JointGoal
 from motion_planning.utils import add_ompl_to_sys_path
 
 add_ompl_to_sys_path()
-from ompl import base as ob
-
-
-def get_start_and_goal(space, cfg):
-    start = ob.State(space)
-    joints = cfg.start_joints
-    for i, joint in enumerate(joints):
-        start[i] = joint
-
-    # TODO Implement GoalRegion
-    goal = ob.State(space)
-    if cfg.goal.type == 'jointspace':
-        joints = cfg.goal.jointspace.joints
-    else:
-        raise NotImplementedError
-    for i, joint in enumerate(joints):
-        goal[i] = joint
-
-    return start, goal
 
 
 @hydra.main(config_path="../cfg", config_name="run_franka_planner")
@@ -32,8 +14,9 @@ def main(cfg):
     planner = IAMMotionPlanner(cfg)
     start = make_simple_pillar_state(cfg.robot.robot_name,
                                      cfg.task.start_joints)[0]
-    goal = {"goal_type": "joints", "goal": cfg.task.goal.jointspace.joints}
+    goal = JointGoal(cfg.task.goal.jointspace.joints)
     solution_path = planner.replan(start, goal, 5)
+
     if solution_path is not None:
         planner.visualize_plan(solution_path)
     planner.close()
