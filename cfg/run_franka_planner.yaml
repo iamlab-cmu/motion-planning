@@ -6,6 +6,7 @@ collision_checking:
 simplify_solution: True
 plan_with_constraints: True
 gui: True
+vis_plan: True
 planner:
   type: RRT
   interpolate: True

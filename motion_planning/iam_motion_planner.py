@@ -1,3 +1,6 @@
+import logging
+from time import sleep
+
 from motion_planning.collision_checker import PyBulletCollisionChecker
 from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
 from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
@@ -6,6 +9,9 @@ from motion_planning.utils import (add_ompl_to_sys_path)
 add_ompl_to_sys_path()
 from ompl import base as ob
 from ompl import geometric as og
+
+
+logger = logging.getLogger(__name__)
 
 
 class IAMMotionPlanner():
@@ -47,16 +53,19 @@ class IAMMotionPlanner():
                                                       goal_ompl_state)
         solved = self._ompl_simple_setup.solve(max_planning_time)
         if solved:
+            logger.info("Planning successful")
             self._ompl_simple_setup.simplifySolution()
             return self._postprocess_plan(self._ompl_simple_setup.getSolutionPath())
         else:
             return None
 
-    def visualize_plan(self, solution_path, block=True):
+    def visualize_plan(self, solution_path, block=True, duration=1):
         active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
+        duration_per_step = duration / solution_path.getStateCount()
         for i in range(solution_path.getStateCount()):
             joint_positions = [solution_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
             self._robot_model.set_conf(active_joint_numbers, joint_positions)
+            sleep(duration_per_step)
             if block:
                 input("OK?")
 
@@ -109,6 +118,8 @@ class IAMMotionPlanner():
         return ompl_state
 
     def _postprocess_plan(self, plan):
+        logger.debug("Post-processing the plan")
         if self._planner_cfg.interpolate:
-            plan = plan.interpolate(self._planner_cfg.interpolation_steps)
+            logger.debug("Interpolating the plan")
+            plan.interpolate(self._planner_cfg.interpolation_steps)
         return plan
