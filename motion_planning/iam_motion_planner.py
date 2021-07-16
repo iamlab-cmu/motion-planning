@@ -28,7 +28,7 @@ class IAMMotionPlanner():
 
         # TODO constraints
 
-    def replan(self, start_pillar_state, goal_pillar_state, object_name_to_geometry=None):
+    def replan(self, start_pillar_state, goal_pillar_state, max_planning_time, object_name_to_geometry=None):
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
                 start_pillar_state, {}, self._active_joints, self._cfg)
@@ -36,12 +36,19 @@ class IAMMotionPlanner():
         else:
             self._collision_checker.update_state(start_pillar_state)
         self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
+        start_ompl_state = self._pillar_state_to_ompl_state(start_pillar_state)
+        goal_ompl_state = self._pillar_state_to_ompl_state(goal_pillar_state)
+        self._ompl_simple_setup.setStartAndGoalStates(start_ompl_state,
+                                                      goal_ompl_state)
+        solved = self._ompl_simple_setup.solve(max_planning_time)
+        if solved:
+            self._ompl_simple_setup.simplifySolution()
+            return self._ompl_simple_setup.getSolutionPath()
+        else:
+            return None
 
-        # if solved:
-            # ss.simplifySolution()
-            # return ss.getSolutionPath()
-        # else:
-            # return None
+    def close(self):
+        self._collision_checker.close()
 
     def _init_state_space(self, cfg):
         state_space = ob.RealVectorStateSpace(self._ndims)
@@ -61,3 +68,8 @@ class IAMMotionPlanner():
         self._ompl_simple_setup.setStateValidityChecker(ob.StateValidityCheckerFn(
             lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
 
+    def _pillar_state_to_ompl_state(self, pillar_state):
+        """Extracts robot joints from the pillar state."""
+        ompl_state = pillar_state.get_values_as_vec(
+            [f"frame:{self._robot_cfg.robot_name}:joint_positions"])
+        return ompl_state

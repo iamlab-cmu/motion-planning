@@ -58,18 +58,19 @@ def main(cfg):
     # space = get_state_space(cfg.robot)
     planner = IAMMotionPlanner(cfg)
 
-    import IPython; IPython.embed(); exit()
 
     # create a simple setup object
     pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
-    pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+    # pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+
+    sovled = planner.replan(start, goal, 5)
+    planner.close()
+    import IPython; IPython.embed(); exit()
+
     active_joints = cfg.robot.active_joints
     robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
     collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg,
                                                  robot_model=robot_model)
-    ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(
-        ob.StateValidityCheckerFn(lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
 
     start, goal = get_start_and_goal(space, cfg.task)
     ss.setStartAndGoalStates(start, goal)
