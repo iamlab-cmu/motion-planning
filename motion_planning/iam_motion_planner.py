@@ -31,7 +31,7 @@ class IAMMotionPlanner():
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
                 self._env, start_pillar_state, {}, self._active_joints,
-                self._cfg, self._env, robot_model=self._robot_model)
+                self._cfg, robot_model=self._robot_model)
             self._set_collision_checker(collision_checker)
         else:
             self._collision_checker.update_state(start_pillar_state)
@@ -76,3 +76,11 @@ class IAMMotionPlanner():
         for i, joint in enumerate(state):
             ompl_state[i] = joint
         return ompl_state
+
+    def visualize_plan(self, solution_path, block=True):
+        active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
+        for i in range(solution_path.getStateCount()):
+            joint_positions = [solution_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
+            self._robot_model.set_conf(active_joint_numbers, joint_positions)
+            if block:
+                input("OK?")

@@ -1,21 +1,12 @@
 import hydra
-from hydra.utils import to_absolute_path
-
-from urdfpy import URDF
-
 from pillar_state import State
 
-from motion_planning.utils import add_ompl_to_sys_path
-from motion_planning.collision_checker import PyBulletCollisionChecker
-from motion_planning.models.object_geometry import Box
-from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
-from motion_planning.utils.visualization_utils import show_plan
-from motion_planning.planners import MaintainOrientation
 from motion_planning.iam_motion_planner import IAMMotionPlanner
+from motion_planning.models.object_geometry import Box
+from motion_planning.utils import add_ompl_to_sys_path
 
 add_ompl_to_sys_path()
 from ompl import base as ob
-from ompl import geometric as og
 
 
 def get_start_and_goal(space, cfg):
@@ -38,46 +29,24 @@ def get_start_and_goal(space, cfg):
 
 @hydra.main(config_path="../cfg", config_name="run_franka_planner")
 def main(cfg):
-    # space = get_state_space(cfg.robot)
     planner = IAMMotionPlanner(cfg)
-
-
-    # create a simple setup object
-    # pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
-    # pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
-
-    start = make_simple_start_state(cfg.robot.robot_name,
-                                    cfg.task.start_joints)[0]
-    goal = make_simple_start_state(cfg.robot.robot_name,
-                                   cfg.task.goal.jointspace.joints)[0]
-    solved = planner.replan(start, goal, 5)
+    start = make_simple_pillar_state(cfg.robot.robot_name,
+                                          cfg.task.start_joints)[0]
+    goal = make_simple_pillar_state(cfg.robot.robot_name,
+                                         cfg.task.goal.jointspace.joints)[0]
+    solution_path = planner.replan(start, goal, 5)
+    if solution_path is not None:
+        planner.visualize_plan(solution_path)
     planner.close()
-    import IPython; IPython.embed(); exit()
-
-    active_joints = cfg.robot.active_joints
-    robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
-    collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg,
-                                                 robot_model=robot_model)
-
-    start, goal = get_start_and_goal(space, cfg.task)
-    ss.setStartAndGoalStates(start, goal)
-
-    solved = ss.solve(5.0)
-
-    if solved and cfg.simplify_solution:
-        ss.simplifySolution()
-    plan = ss.getSolutionPath()
-    collision_checker.close()
-    show_plan(plan, pillar_state, object_name_to_geometry, active_joints, robot_model)
 
 
-def make_simple_start_state(robot_name, start_conf):
+def make_simple_pillar_state(robot_name, start_conf):
     pillar_state = State()
     pillar_state.update_property(f"frame:{robot_name}:joint_positions", start_conf)
     return pillar_state, {}
 
 
-def make_constrained_start_state(robot_name, start_conf):
+def make_constrained_pillar_state(robot_name, start_conf):
     pillar_state = State()
     pillar_state.update_property(f"frame:{robot_name}:joint_positions", start_conf)
     short_side_len = 0.05
@@ -91,26 +60,6 @@ def make_constrained_start_state(robot_name, start_conf):
         pillar_state.update_property(f"frame:box{i}:pose/quaternion", [1, 0, 0, 0])
 
     return pillar_state, object_name_to_geometry
-
-
-# def state_to_joints(state, num_joints=7):
-# return [state[i] for i in range(num_joints)]
-
-# def show_plan(plan):
-# connect(use_gui=True)
-# add_data_path()
-# draw_pose(Pose(), length=1.)
-# set_camera_pose(camera_point=[1, -1, 1])
-
-# plane = p.loadURDF("plane.urdf")
-# with LockRenderer():
-# with HideOutput(True):
-# robot = load_pybullet(FRANKA_URDF, fixed_base=True)
-# import ipdb; ipdb.set_trace()
-# for i in range(plan.getStateCount()):
-# state = plan.getState(i)
-# conf = state_to_joints(state)
-# robot.set_joints(conf)
 
 
 if __name__ == "__main__":

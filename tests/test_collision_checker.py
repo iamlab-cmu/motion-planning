@@ -40,7 +40,7 @@ def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg, ro
     active_joints = [f"panda_joint{i}" for i in range(1, 8)]
     env = PyBulletRobotEnv(robot_model, vis=cfg.collision_checking.gui)
     env.initialize_workspace(pillar_state, object_name_to_geometry)
-    return PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg, env,
+    return PyBulletCollisionChecker(env, pillar_state, object_name_to_geometry, active_joints, cfg,
                                     robot_model=robot_model,
                                     attached_object_names=attached_object_names)
 
