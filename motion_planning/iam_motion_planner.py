@@ -33,6 +33,8 @@ class IAMMotionPlanner():
             collision_checker = PyBulletCollisionChecker(
                 start_pillar_state, {}, self._active_joints, self._cfg)
             self._set_collision_checker(collision_checker)
+        else:
+            self._collision_checker.update_state(start_pillar_state)
         self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
 
         # if solved:

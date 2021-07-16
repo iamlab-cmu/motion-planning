@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from ..utils.utils import add_pb_tools_if_not_on_path
 
+from copy import deepcopy
 add_pb_tools_if_not_on_path()
 import pybullet as p
 from itertools import product
@@ -77,6 +78,10 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
             attachment.assign()
             attachments.append(attachment)
         return attachments
+
+    def update_state(self, pillar_state, new_attachment_names=None):
+        self._pillar_state = deepcopy(pillar_state)
+        self._update_collision_fn(new_attachment_names=new_attachment_names)
 
     def _update_collision_fn(self, new_attachment_names=None):
         if new_attachment_names is not None:

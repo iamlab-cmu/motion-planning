@@ -53,7 +53,6 @@ class PyBulletRobotModel:
         return conf
 
     def get_joint_limits(self, joint_name):
-        __import__('ipdb').set_trace()
         joint_idx = self.joint_names_to_joint_numbers([joint_name])[0]
         return pb_utils.get_joint_limits(self.object_index, joint_idx)
 
