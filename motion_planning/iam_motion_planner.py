@@ -27,10 +27,11 @@ class IAMMotionPlanner():
 
         # TODO constraints
 
-    def replan(self, start_pillar_state, goal_pillar_state, max_planning_time, object_name_to_geometry=None):
+    def replan(self, start_pillar_state, goal_pillar_state, max_planning_time, object_name_to_geometry={}):
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
-                start_pillar_state, {}, self._active_joints, self._cfg, self._env, robot_model=self._robot_model)
+                self._env, start_pillar_state, {}, self._active_joints,
+                self._cfg, self._env, robot_model=self._robot_model)
             self._set_collision_checker(collision_checker)
         else:
             self._collision_checker.update_state(start_pillar_state)
@@ -69,6 +70,9 @@ class IAMMotionPlanner():
 
     def _pillar_state_to_ompl_state(self, pillar_state):
         """Extracts robot joints from the pillar state."""
-        ompl_state = pillar_state.get_values_as_vec(
+        state = pillar_state.get_values_as_vec(
             [f"frame:{self._robot_cfg.robot_name}:joint_positions"])
+        ompl_state = ob.State(self._pspace)
+        for i, joint in enumerate(state):
+            ompl_state[i] = joint
         return ompl_state

@@ -18,23 +18,6 @@ from ompl import base as ob
 from ompl import geometric as og
 
 
-def get_state_space(cfg):
-    njoints = len(cfg.active_joints)
-    state_space = ob.RealVectorStateSpace(njoints)
-    robot = URDF.load(to_absolute_path(cfg.path_to_urdf))
-
-    # set lower and upper bounds
-    bounds = ob.RealVectorBounds(njoints)
-    joint_dict = {joint.name: joint for joint in robot.joints}
-    for i, active_joint in enumerate(cfg.active_joints):
-        joint_limits = joint_dict[active_joint].limit
-        bounds.setLow(i, joint_limits.lower)
-        bounds.setHigh(i, joint_limits.upper)
-    state_space.setBounds(bounds)
-
-    return state_space
-
-
 def get_start_and_goal(space, cfg):
     start = ob.State(space)
     joints = cfg.start_joints
@@ -60,10 +43,14 @@ def main(cfg):
 
 
     # create a simple setup object
-    pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+    # pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
     # pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
 
-    sovled = planner.replan(start, goal, 5)
+    start = make_simple_start_state(cfg.robot.robot_name,
+                                    cfg.task.start_joints)[0]
+    goal = make_simple_start_state(cfg.robot.robot_name,
+                                   cfg.task.goal.jointspace.joints)[0]
+    solved = planner.replan(start, goal, 5)
     planner.close()
     import IPython; IPython.embed(); exit()
 
