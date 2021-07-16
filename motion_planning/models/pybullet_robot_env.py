@@ -6,13 +6,12 @@ from ..utils.utils import get_pb_pose_from_pillar_state, \
 
 
 class PyBulletRobotEnv:
-    def __init__(self, pillar_state, object_name_to_geometry, robot_model, vis):
+    def __init__(self, robot_model, vis):
         self._object_name_to_object_id = {}
         pb_utils.connect(use_gui=vis)
         pb_utils.add_data_path()
         p.loadURDF("plane.urdf")
         self.initialize_robot(robot_model)
-        self.initialize_workspace(pillar_state, object_name_to_geometry)
 
     @property
     def object_name_to_object_id(self):

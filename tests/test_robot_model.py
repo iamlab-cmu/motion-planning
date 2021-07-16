@@ -1,17 +1,13 @@
-import pybullet as p
-from motion_planning.utils import add_pb_tools_if_not_on_path
-from collections import namedtuple
-
-add_pb_tools_if_not_on_path()
-import pybullet_tools.utils as pb_utils
 import time
 
-from pybullet_tools.ikfast.ikfast import get_ik_joints, either_inverse_kinematics, check_ik_solver, is_ik_compiled
-from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
-from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
-from pillar_state import State
 import numpy as np
 from omegaconf import OmegaConf
+from pillar_state import State
+
+import motion_planning.pybullet_tools.utils as pb_utils
+from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
+from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
+from motion_planning.pybullet_tools.ikfast.ikfast import either_inverse_kinematics, is_ik_compiled
 
 cfg = OmegaConf.load("cfg/collision_checker.yaml")
 
@@ -20,7 +16,8 @@ def make_env(robot_model):
     start_pillar_state = State()
     start_joints = [0, -np.pi / 4, 0, -2.85496998, 0, 2.09382820, np.pi / 4]
     joint_nums = list(range(len(start_joints)))
-    env = PyBulletRobotEnv(start_pillar_state, {}, robot_model, vis=cfg.collision_checking.gui)
+    env = PyBulletRobotEnv(robot_model, vis=cfg.collision_checking.gui)
+    env.initialize_workspace(start_pillar_state, {})
     robot_model.set_conf(joint_nums, start_joints)
     return env
 
@@ -46,8 +43,9 @@ def test_joint_limits():
     # See https://frankaemika.github.io/docs/control_parameters.html
     manually_parsed_joint_limits_low = [-2.9671, -1.8326, -2.9671, -3.0, -2.9671, -0.0873, -2.9671]
     manually_parsed_joint_limits_high = [2.9671, 1.8326, 2.9671, 0.087, 2.9671, 3.0, 2.9671]
-    for joint_idx in range(7):
-        low, high = robot_model.get_joint_limits(joint_idx)
+    joint_names = [f"panda_joint{i}" for i in range(1, 8)]
+    for joint_idx, joint_name in enumerate(joint_names):
+        low, high = robot_model.get_joint_limits(joint_name)
         assert low == manually_parsed_joint_limits_low[joint_idx]
         assert high == manually_parsed_joint_limits_high[joint_idx]
 
@@ -63,6 +61,3 @@ def run_and_time_ik(end_pose, env, tool_link, info, use_pybullet=False, **kwargs
     end_time = time.time()
     print(f"Time to compute IK. Using ikfast? {using_ikfast}", end_time - start_time)
     return conf
-
-
-test_ik()

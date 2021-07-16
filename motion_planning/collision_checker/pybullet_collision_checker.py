@@ -1,14 +1,12 @@
 from itertools import product
 
 import motion_planning.pybullet_tools.utils as pb_utils
-from motion_planning.utils import joint_conf_from_pillar_state, link_names_to_link_numbers
+from motion_planning.utils import joint_conf_from_pillar_state
 from .base_collision_checker import BaseCollisionChecker
-from ..models.pybullet_robot_env import PyBulletRobotEnv
-from ..utils.utils import joint_names_to_joint_numbers
 
 
 class PyBulletCollisionChecker(BaseCollisionChecker):
-    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, robot_model=None,
+    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, env, robot_model=None,
                  disabled_collisions=[],
                  attached_object_names=[]):
         """
@@ -23,14 +21,11 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._max_distance = 0
         self._robot_name = cfg["robot"]["robot_name"]
         self._robot_model = robot_model
-        self._env = PyBulletRobotEnv(pillar_state,
-                                     object_name_to_geometry,
-                                     self._robot_model,
-                                     vis=cfg["collision_checking"]["gui"])
+        self._env = env
         self._disabled_collisions = disabled_collisions
-        self._active_joint_numbers = joint_names_to_joint_numbers(self._robot_model, self._active_joints)
+        self._active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
         self._attached_object_names = attached_object_names
-        self._grasp_link = link_names_to_link_numbers(self._robot_model, [cfg.robot.grasp_link])[0]
+        self._grasp_link = self._robot_model.link_names_to_link_numbers([cfg.robot.grasp_link])[0]
         self._update_collision_fn()
 
     def _workspace_collisions(self):
