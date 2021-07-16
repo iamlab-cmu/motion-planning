@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..utils.utils import add_pb_tools_if_not_on_path, joint_names_to_link_numbers
+from ..utils.utils import add_pb_tools_if_not_on_path, joint_names_to_joint_numbers
 
 add_pb_tools_if_not_on_path()
 import pybullet as p
@@ -8,8 +8,7 @@ import numpy as np
 
 import pybullet_tools.utils as pb_utils
 from .base_collision_checker import BaseCollisionChecker
-from motion_planning.utils import object_geometry_to_pybullet_object, get_pb_pose_from_pillar_state, \
-    joint_conf_from_pillar_state
+from motion_planning.utils import joint_conf_from_pillar_state, link_names_to_link_numbers
 from ..models.pybullet_robot_env import PyBulletRobotEnv
 
 
@@ -34,9 +33,9 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
                                      self._robot_model,
                                      vis=cfg["collision_checking"]["gui"])
         self._disabled_collisions = disabled_collisions
-        self._active_joint_numbers = joint_names_to_link_numbers(self._robot_model, self._active_joints)
+        self._active_joint_numbers = joint_names_to_joint_numbers(self._robot_model, self._active_joints)
         self._attached_object_names = attached_object_names
-        self._grasp_link = joint_names_to_link_numbers(self._robot_model, [cfg.robot.grasp_link])[0]
+        self._grasp_link = link_names_to_link_numbers(self._robot_model, [cfg.robot.grasp_link])[0]
         self._update_collision_fn()
 
     def _workspace_collisions(self):
