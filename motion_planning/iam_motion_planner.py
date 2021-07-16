@@ -1,3 +1,6 @@
+import logging
+from time import sleep
+
 from motion_planning.collision_checker import PyBulletCollisionChecker
 from motion_planning.models.pybullet_robot_env import PyBulletRobotEnv
 from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
@@ -8,12 +11,15 @@ from ompl import base as ob
 from ompl import geometric as og
 
 
+logger = logging.getLogger(__name__)
+
+
 class IAMMotionPlanner():
     def __init__(self, cfg, collision_checker=None):
         self._robot_cfg = cfg.robot
+        self._planner_cfg = cfg.planner
         self._active_joints = self._robot_cfg.active_joints
         self._ndims = len(self._active_joints)
-        # self._planner = cfg.planner
 
         # robot
         self._robot_model = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
@@ -25,9 +31,8 @@ class IAMMotionPlanner():
         self._set_collision_checker(collision_checker)
 
         # planner
-        self._motion_planner_type = cfg.planner_type
         si = self._ompl_simple_setup.getSpaceInformation()
-        self._motion_planner = self._allocate_planner(si, cfg.planner_type)
+        self._motion_planner = self._allocate_planner(si, cfg.planner.type)
         self._ompl_simple_setup.setPlanner(self._motion_planner)
 
         # TODO constraints
@@ -48,16 +53,19 @@ class IAMMotionPlanner():
                                                       goal_ompl_state)
         solved = self._ompl_simple_setup.solve(max_planning_time)
         if solved:
+            logger.info("Planning successful")
             self._ompl_simple_setup.simplifySolution()
-            return self._ompl_simple_setup.getSolutionPath()
+            return self._postprocess_plan(self._ompl_simple_setup.getSolutionPath())
         else:
             return None
 
-    def visualize_plan(self, solution_path, block=True):
+    def visualize_plan(self, solution_path, block=True, duration=1):
         active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
+        duration_per_step = duration / solution_path.getStateCount()
         for i in range(solution_path.getStateCount()):
             joint_positions = [solution_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
             self._robot_model.set_conf(active_joint_numbers, joint_positions)
+            sleep(duration_per_step)
             if block:
                 input("OK?")
 
@@ -108,3 +116,10 @@ class IAMMotionPlanner():
         for i, joint in enumerate(state):
             ompl_state[i] = joint
         return ompl_state
+
+    def _postprocess_plan(self, plan):
+        logger.debug("Post-processing the plan")
+        if self._planner_cfg.interpolate:
+            logger.debug("Interpolating the plan")
+            plan.interpolate(self._planner_cfg.interpolation_steps)
+        return plan

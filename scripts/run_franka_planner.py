@@ -35,8 +35,9 @@ def main(cfg):
     goal = make_simple_pillar_state(cfg.robot.robot_name,
                                          cfg.task.goal.jointspace.joints)[0]
     solution_path = planner.replan(start, goal, 5)
-    if solution_path is not None:
-        planner.visualize_plan(solution_path)
+    if cfg.vis_plan and solution_path is not None:
+        while True:
+            planner.visualize_plan(solution_path, block=False, duration=2)
     planner.close()
 
 
