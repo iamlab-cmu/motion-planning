@@ -1,15 +1,10 @@
-from abc import ABC, abstractmethod
-from ..utils.utils import add_pb_tools_if_not_on_path, joint_names_to_joint_numbers
-
-add_pb_tools_if_not_on_path()
-import pybullet as p
 from itertools import product
-import numpy as np
 
-import pybullet_tools.utils as pb_utils
-from .base_collision_checker import BaseCollisionChecker
+import motion_planning.pybullet_tools.utils as pb_utils
 from motion_planning.utils import joint_conf_from_pillar_state, link_names_to_link_numbers
+from .base_collision_checker import BaseCollisionChecker
 from ..models.pybullet_robot_env import PyBulletRobotEnv
+from ..utils.utils import joint_names_to_joint_numbers
 
 
 class PyBulletCollisionChecker(BaseCollisionChecker):

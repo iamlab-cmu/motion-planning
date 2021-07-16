@@ -1,13 +1,12 @@
-from ..utils.utils import add_pb_tools_if_not_on_path, object_geometry_to_pybullet_object, find_robot_urdf, \
-    RigidTransform_to_pb_pose
-
-add_pb_tools_if_not_on_path()
-import pybullet_tools.utils as pb_utils
-import pybullet as p
-import numpy as np
 from collections import namedtuple
+
+import numpy as np
 from autolab_core import RigidTransform
-from pybullet_tools.ikfast.ikfast import get_ik_joints, either_inverse_kinematics, check_ik_solver, is_ik_compiled
+
+import motion_planning.pybullet_tools.utils as pb_utils
+from motion_planning.pybullet_tools.ikfast.ikfast import get_ik_joints, either_inverse_kinematics
+from ..utils.utils import find_robot_urdf, \
+    RigidTransform_to_pb_pose
 
 
 class PyBulletRobotModel:

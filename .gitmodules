@@ -1,3 +1,0 @@
-[submodule "deps/pybullet-planning"]
-	path = deps/pybullet-planning
-	url = https://github.com/caelan/pybullet-planning/

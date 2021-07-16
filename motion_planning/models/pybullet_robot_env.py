@@ -1,9 +1,8 @@
-from ..utils.utils import add_pb_tools_if_not_on_path, get_pb_pose_from_pillar_state, \
-    object_geometry_to_pybullet_object
-
-add_pb_tools_if_not_on_path()
-import pybullet_tools.utils as pb_utils
 import pybullet as p
+
+import motion_planning.pybullet_tools.utils as pb_utils
+from ..utils.utils import get_pb_pose_from_pillar_state, \
+    object_geometry_to_pybullet_object
 
 
 class PyBulletRobotEnv:
