@@ -15,25 +15,25 @@ class IAMMotionPlanner():
         self._active_joints = self._robot_cfg.active_joints
         self._ndims = len(self._active_joints)
         # self._planner = cfg.planner
-        self._collision_checker = collision_checker
         self._cfg = cfg
 
         # robot
         self._robot_model = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
-        self._env = None
+        self._env = PyBulletRobotEnv(self._robot_model, self._cfg.gui)
 
         # planning space
         self._pspace = self._init_state_space(cfg)
+        self._ompl_simple_setup = og.SimpleSetup(self._pspace)
+        self._set_collision_checker(collision_checker)
 
         # TODO constraints
 
-    def replan(self, start_pillar_state, goal_pillar_state):
+    def replan(self, start_pillar_state, goal_pillar_state, object_name_to_geometry=None):
         if self._collision_checker is None:
-            self._collision_checker = PyBulletCollisionChecker(
+            collision_checker = PyBulletCollisionChecker(
                 start_pillar_state, {}, self._active_joints, self._cfg)
-        if self._env is None:
-            self._env = PyBulletRobotEnv(start_pillar_state, {}, self._robot_model,
-                                         self._cfg.gui)
+            self._set_collision_checker(collision_checker)
+        self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
 
         # if solved:
             # ss.simplifySolution()
@@ -53,3 +53,9 @@ class IAMMotionPlanner():
         state_space.setBounds(bounds)
 
         return state_space
+
+    def _set_collision_checker(self, collision_checker):
+        self._collision_checker = collision_checker
+        self._ompl_simple_setup.setStateValidityChecker(ob.StateValidityCheckerFn(
+            lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
+

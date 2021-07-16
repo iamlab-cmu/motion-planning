@@ -5,3 +5,4 @@ collision_checking:
   gui: False
 simplify_solution: True
 plan_with_constraints: True
+gui: True
