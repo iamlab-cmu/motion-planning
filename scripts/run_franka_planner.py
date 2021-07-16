@@ -31,9 +31,8 @@ def get_start_and_goal(space, cfg):
 def main(cfg):
     planner = IAMMotionPlanner(cfg)
     start = make_simple_pillar_state(cfg.robot.robot_name,
-                                          cfg.task.start_joints)[0]
-    goal = make_simple_pillar_state(cfg.robot.robot_name,
-                                         cfg.task.goal.jointspace.joints)[0]
+                                     cfg.task.start_joints)[0]
+    goal = {"goal_type": "joints", "goal": cfg.task.goal.jointspace.joints}
     solution_path = planner.replan(start, goal, 5)
     if solution_path is not None:
         planner.visualize_plan(solution_path)

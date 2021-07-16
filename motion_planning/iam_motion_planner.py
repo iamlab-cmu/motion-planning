@@ -27,7 +27,7 @@ class IAMMotionPlanner():
 
         # TODO constraints
 
-    def replan(self, start_pillar_state, goal_pillar_state, max_planning_time, object_name_to_geometry={}):
+    def replan(self, start_pillar_state, goal_info, max_planning_time, object_name_to_geometry={}):
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
                 self._env, start_pillar_state, {}, self._active_joints,
@@ -37,7 +37,10 @@ class IAMMotionPlanner():
             self._collision_checker.update_state(start_pillar_state)
         self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
         start_ompl_state = self._pillar_state_to_ompl_state(start_pillar_state)
-        goal_ompl_state = self._pillar_state_to_ompl_state(goal_pillar_state)
+        if goal_info["goal_type"] == "joints":
+            goal_ompl_state = self._make_joint_goal(goal_info["goal"])
+        else:
+            raise ValueError(f"Unsupported goal type: {goal_info['goal_type']}")
         self._ompl_simple_setup.setStartAndGoalStates(start_ompl_state,
                                                       goal_ompl_state)
         solved = self._ompl_simple_setup.solve(max_planning_time)
@@ -74,6 +77,12 @@ class IAMMotionPlanner():
             [f"frame:{self._robot_cfg.robot_name}:joint_positions"])
         ompl_state = ob.State(self._pspace)
         for i, joint in enumerate(state):
+            ompl_state[i] = joint
+        return ompl_state
+
+    def _make_joint_goal(self, joint_positions):
+        ompl_state = ob.State(self._pspace)
+        for i, joint in enumerate(joint_positions):
             ompl_state[i] = joint
         return ompl_state
 
