@@ -43,24 +43,6 @@ def add_ompl_to_sys_path():
     sys.path.insert(0, path_to_ompl)
 
 
-def joint_names_to_joint_numbers(robot_model, joint_names):
-    all_joints = pb_utils.get_joints(robot_model.object_index)
-    all_joint_names = pb_utils.get_joint_names(robot_model.object_index, all_joints)
-    joint_numbers = []
-    for joint_name in joint_names:
-        joint_number = all_joint_names.index(joint_name)
-        joint_numbers.append(joint_number)
-    return joint_numbers
-
-def link_names_to_link_numbers(robot_model, link_names):
-    all_links = pb_utils.get_all_links(robot_model.object_index)
-    all_link_names = pb_utils.get_link_names(robot_model.object_index, all_links)
-    link_numbers = []
-    for link_name in link_names:
-        link_number = all_link_names.index(link_name)
-        link_numbers.append(link_number)
-    return link_numbers
-
 def pb_pose_to_RigidTransform(pb_pose):
     translation = pb_pose[0]
     xyzw_quaternion = pb_pose[1]

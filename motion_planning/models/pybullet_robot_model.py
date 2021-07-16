@@ -51,5 +51,24 @@ class PyBulletRobotModel:
             return ik_joints, conf
         return conf
 
-    def get_joint_limits(self, joint):
-        return pb_utils.get_joint_limits(self.object_index, joint)
+    def get_joint_limits(self, joint_name):
+        joint_idx = self._joint_names_to_joint_numbers([joint_name])[0]
+        return pb_utils.get_joint_limits(self.object_index, joint_idx)
+
+    def _joint_names_to_joint_numbers(self, joint_names):
+        all_joints = pb_utils.get_joints(self.object_index)
+        all_joint_names = pb_utils.get_joint_names(self.object_index, all_joints)
+        joint_numbers = []
+        for joint_name in joint_names:
+            joint_number = all_joint_names.index(joint_name)
+            joint_numbers.append(joint_number)
+        return joint_numbers
+
+    def _link_names_to_link_numbers(self, link_names):
+        all_links = pb_utils.get_all_links(self.object_index)
+        all_link_names = pb_utils.get_link_names(self.object_index, all_links)
+        link_numbers = []
+        for link_name in link_names:
+            link_number = all_link_names.index(link_name)
+            link_numbers.append(link_number)
+        return link_numbers
