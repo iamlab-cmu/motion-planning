@@ -1,11 +1,10 @@
-from motion_planning.utils.utils import add_pb_tools_if_not_on_path, find_robot_urdf
-
-add_pb_tools_if_not_on_path()
-import pybullet_tools.utils as pb_utils
-
-import numpy as np
 import pybullet as p
 import time
+
+import numpy as np
+
+import motion_planning.pybullet_tools.utils as pb_utils
+from motion_planning.utils.utils import find_robot_urdf
 
 
 def load_robot():

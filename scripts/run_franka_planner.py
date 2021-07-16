@@ -7,29 +7,15 @@ from pillar_state import State
 
 from motion_planning.utils import add_ompl_to_sys_path
 from motion_planning.collision_checker import PyBulletCollisionChecker
-from motion_planning.envs.object_geometry import Box
+from motion_planning.models.object_geometry import Box
+from motion_planning.models.pybullet_robot_model import PyBulletRobotModel
 from motion_planning.utils.visualization_utils import show_plan
+from motion_planning.planners import MaintainOrientation
+from motion_planning.iam_motion_planner import IAMMotionPlanner
 
 add_ompl_to_sys_path()
 from ompl import base as ob
 from ompl import geometric as og
-
-
-def get_state_space(cfg):
-    njoints = len(cfg.active_joints)
-    state_space = ob.RealVectorStateSpace(njoints)
-    robot = URDF.load(to_absolute_path(cfg.path_to_urdf))
-
-    # set lower and upper bounds
-    bounds = ob.RealVectorBounds(njoints)
-    joint_dict = {joint.name: joint for joint in robot.joints}
-    for i, active_joint in enumerate(cfg.active_joints):
-        joint_limits = joint_dict[active_joint].limit
-        bounds.setLow(i, joint_limits.lower)
-        bounds.setHigh(i, joint_limits.upper)
-    state_space.setBounds(bounds)
-
-    return state_space
 
 
 def get_start_and_goal(space, cfg):
@@ -52,16 +38,26 @@ def get_start_and_goal(space, cfg):
 
 @hydra.main(config_path="../cfg", config_name="run_franka_planner")
 def main(cfg):
-    space = get_state_space(cfg.robot)
+    # space = get_state_space(cfg.robot)
+    planner = IAMMotionPlanner(cfg)
+
 
     # create a simple setup object
-    pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
-    pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+    # pillar_state, object_name_to_geometry = make_simple_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+    # pillar_state, object_name_to_geometry = make_constrained_start_state(cfg.robot.robot_name, cfg.task.start_joints)
+
+    start = make_simple_start_state(cfg.robot.robot_name,
+                                    cfg.task.start_joints)[0]
+    goal = make_simple_start_state(cfg.robot.robot_name,
+                                   cfg.task.goal.jointspace.joints)[0]
+    solved = planner.replan(start, goal, 5)
+    planner.close()
+    import IPython; IPython.embed(); exit()
+
     active_joints = cfg.robot.active_joints
-    collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg)
-    ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(
-        ob.StateValidityCheckerFn(lambda ompl_state: not collision_checker.ompl_state_in_collision(ompl_state)))
+    robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
+    collision_checker = PyBulletCollisionChecker(pillar_state, object_name_to_geometry, active_joints, cfg,
+                                                 robot_model=robot_model)
 
     start, goal = get_start_and_goal(space, cfg.task)
     ss.setStartAndGoalStates(start, goal)
@@ -72,7 +68,7 @@ def main(cfg):
         ss.simplifySolution()
     plan = ss.getSolutionPath()
     collision_checker.close()
-    show_plan(plan, pillar_state, object_name_to_geometry, active_joints, cfg)
+    show_plan(plan, pillar_state, object_name_to_geometry, active_joints, robot_model)
 
 
 def make_simple_start_state(robot_name, start_conf):

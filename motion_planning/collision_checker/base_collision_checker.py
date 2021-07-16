@@ -3,10 +3,10 @@ from ..utils import find_robot_urdf
 
 
 class BaseCollisionChecker(ABC):
-    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg):
+    def __init__(self, pillar_state, object_name_to_geometry, active_joints, cfg, robot_model):
         self._pillar_state = pillar_state
         self._object_name_to_geometry = object_name_to_geometry
-        self._robot_urdf_fn = find_robot_urdf(cfg["robot"]["path_to_urdf"])
+        self._robot_model = robot_model
         self._active_joints = active_joints
         self._cfg = cfg
 
