@@ -11,9 +11,9 @@ from ompl import geometric as og
 class IAMMotionPlanner():
     def __init__(self, cfg, collision_checker=None):
         self._robot_cfg = cfg.robot
+        self._planner_cfg = cfg.planner
         self._active_joints = self._robot_cfg.active_joints
         self._ndims = len(self._active_joints)
-        # self._planner = cfg.planner
 
         # robot
         self._robot_model = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
@@ -25,9 +25,8 @@ class IAMMotionPlanner():
         self._set_collision_checker(collision_checker)
 
         # planner
-        self._motion_planner_type = cfg.planner_type
         si = self._ompl_simple_setup.getSpaceInformation()
-        self._motion_planner = self._allocate_planner(si, cfg.planner_type)
+        self._motion_planner = self._allocate_planner(si, cfg.planner.type)
         self._ompl_simple_setup.setPlanner(self._motion_planner)
 
         # TODO constraints
@@ -49,7 +48,7 @@ class IAMMotionPlanner():
         solved = self._ompl_simple_setup.solve(max_planning_time)
         if solved:
             self._ompl_simple_setup.simplifySolution()
-            return self._ompl_simple_setup.getSolutionPath()
+            return self._postprocess_plan(self._ompl_simple_setup.getSolutionPath())
         else:
             return None
 
@@ -108,3 +107,8 @@ class IAMMotionPlanner():
         for i, joint in enumerate(state):
             ompl_state[i] = joint
         return ompl_state
+
+    def _postprocess_plan(self, plan):
+        if self._planner_cfg.interpolate:
+            plan = plan.interpolate(self._planner_cfg.interpolation_steps)
+        return plan
