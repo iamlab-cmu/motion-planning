@@ -7,6 +7,7 @@ from motion_planning.utils import add_ompl_to_sys_path
 add_ompl_to_sys_path()
 from ompl import base as ob
 from ompl import geometric as og
+import numpy as np
 
 
 class IAMMotionPlanner():
@@ -17,7 +18,7 @@ class IAMMotionPlanner():
         self._cfg = cfg
 
         # robot
-        self._robot_model = PyBulletRobotModel(self._robot_cfg.path_to_urdf)
+        self._robot_model = PyBulletRobotModel(self._robot_cfg)
         self._env = PyBulletRobotEnv(self._robot_model, self._cfg.gui)
 
         # planning space
@@ -27,7 +28,7 @@ class IAMMotionPlanner():
 
         # TODO constraints
 
-    def replan(self, start_pillar_state, goal, max_planning_time, object_name_to_geometry={}):
+    def replan(self, start_pillar_state, goal, max_planning_time=5, object_name_to_geometry={}):
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
                 self._env, start_pillar_state, {}, self._active_joints,
@@ -48,12 +49,19 @@ class IAMMotionPlanner():
         solved = self._ompl_simple_setup.solve(max_planning_time)
         if solved:
             self._ompl_simple_setup.simplifySolution()
-            return self._ompl_simple_setup.getSolutionPath()
+            return self.ompl_path_to_array(self._ompl_simple_setup.getSolutionPath())
         else:
             return None
 
     def close(self):
         self._collision_checker.close()
+
+    def ompl_path_to_array(self, ompl_path):
+        solution_path_np = []
+        for i in range(ompl_path.getStateCount()):
+            joint_positions = [ompl_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
+            solution_path_np.append(joint_positions)
+        return np.array(solution_path_np)
 
     def _init_state_space(self, cfg):
         state_space = ob.RealVectorStateSpace(self._ndims)
@@ -89,9 +97,9 @@ class IAMMotionPlanner():
         return ompl_state
 
     def visualize_plan(self, solution_path, block=True):
-        active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
-        for i in range(solution_path.getStateCount()):
-            joint_positions = [solution_path.getState(i)[state_idx] for state_idx in range(len(self._active_joints))]
-            self._robot_model.set_conf(active_joint_numbers, joint_positions)
+        for joint_conf in solution_path:
+            active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
+            self._robot_model.set_conf(active_joint_numbers, joint_conf)
             if block:
                 input("OK?")
+        return joint_conf

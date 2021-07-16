@@ -1,4 +1,5 @@
 import hydra
+import numpy as np
 from pillar_state import State
 
 from motion_planning.iam_motion_planner import IAMMotionPlanner
@@ -12,20 +13,15 @@ add_ompl_to_sys_path()
 @hydra.main(config_path="../cfg", config_name="run_franka_planner")
 def main(cfg):
     planner = IAMMotionPlanner(cfg)
-    start = make_simple_pillar_state(cfg.robot.robot_name,
-                                     cfg.task.start_joints)[0]
+    start, object_name_to_geometry = make_constrained_pillar_state(cfg.robot.robot_name,
+                                     cfg.task.start_joints)
     goal = JointGoal(cfg.task.goal.jointspace.joints)
-    solution_path = planner.replan(start, goal, 5)
+    solution_path = planner.replan(start, goal, max_planning_time=5, object_name_to_geometry=object_name_to_geometry)
 
     if solution_path is not None:
-        planner.visualize_plan(solution_path)
+        last_joints = planner.visualize_plan(solution_path)
+    assert np.allclose(last_joints, goal.goal_data, atol = 0.01)
     planner.close()
-
-
-def make_simple_pillar_state(robot_name, start_conf):
-    pillar_state = State()
-    pillar_state.update_property(f"frame:{robot_name}:joint_positions", start_conf)
-    return pillar_state, {}
 
 
 def make_constrained_pillar_state(robot_name, start_conf):

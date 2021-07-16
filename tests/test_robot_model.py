@@ -23,7 +23,7 @@ def make_env(robot_model):
 
 
 def test_ik():
-    robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
+    robot_model = PyBulletRobotModel(cfg.robot)
     env = make_env(robot_model)
     pos_tolerance = 1e-3
     ori_tolerance = 1e-3 * np.pi
@@ -38,7 +38,7 @@ def test_ik():
 
 
 def test_joint_limits():
-    robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
+    robot_model = PyBulletRobotModel(cfg.robot)
     env = make_env(robot_model)
     # See https://frankaemika.github.io/docs/control_parameters.html
     manually_parsed_joint_limits_low = [-2.9671, -1.8326, -2.9671, -3.0, -2.9671, -0.0873, -2.9671]

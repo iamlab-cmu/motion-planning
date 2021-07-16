@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from ..utils import add_ompl_to_sys_path
+from ..utils import add_ompl_to_sys_path, pb_pose_from_pose_arr
 
 add_ompl_to_sys_path()
 from ompl import base as ob
@@ -36,13 +36,14 @@ class JointGoal(Goal):
 
 
 class CartesianGoal(Goal):
-    def __init__(self, rigid_transform_goal):
-        self.__init__(rigid_transform_goal)
+    def __init__(self, pose_array_goal):
+        pb_pose_array_goal = pb_pose_from_pose_arr(pose_array_goal)
+        super().__init__(pb_pose_array_goal)
 
     def get_ompl_state(self, pspace, robot_model):
         ompl_state = ob.State(pspace)
         ee_pose = self.goal_data
-        joint_indices, joint_values = robot_model.inverse_kinematics(ee_pose, tool_link=robot_model.grasp_link,
+        joint_indices, joint_values = robot_model.inverse_kinematics(ee_pose, tool_link=robot_model.grasp_link_index,
                                                                      return_ik_joint_indices=True)
         for i, joint in enumerate(joint_indices):
             ompl_state[i] = joint_values[i]
