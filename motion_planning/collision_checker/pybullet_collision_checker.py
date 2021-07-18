@@ -9,6 +9,7 @@ from .base_collision_checker import BaseCollisionChecker
 class PyBulletCollisionChecker(BaseCollisionChecker):
     def __init__(self, pybullet_env, pillar_state, object_name_to_geometry, active_joints, cfg, robot_model=None,
                  disabled_collisions=[],
+                 attachment_names_to_grasp = {},
                  attached_object_names=[]):
         """
 
