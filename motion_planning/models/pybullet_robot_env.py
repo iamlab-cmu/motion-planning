@@ -23,6 +23,8 @@ class PyBulletRobotEnv:
             with pb_utils.HideOutput(True):
                 robot_idx = pb_utils.load_pybullet(robot_urdf_fn, fixed_base=True)
                 robot_model.set_pybullet_obj_index(robot_idx)
+                grasp_link_index = robot_model.link_names_to_link_numbers([robot_model.grasp_link_name])[0]
+                robot_model.set_grasp_link_index(grasp_link_index)
 
     def initialize_workspace(self, pillar_state, object_name_to_geometry):
         for object_name in object_name_to_geometry.keys():

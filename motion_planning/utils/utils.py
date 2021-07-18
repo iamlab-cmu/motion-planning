@@ -61,8 +61,8 @@ def pb_pose_to_RigidTransform(pb_pose):
 
 def RigidTransform_to_pb_pose(rt):
     position = rt.translation
-    wxyz_quaternion = rt.quaternion[3:]
-    xyzw_quaternion = wxyz_quaternion[1:] + [wxyz_quaternion[0]]
+    wxyz_quaternion = rt.quaternion
+    xyzw_quaternion = np.hstack([wxyz_quaternion[1:], [wxyz_quaternion[0]]])
     return (position, xyzw_quaternion)
 
 
@@ -79,6 +79,10 @@ def object_geometry_to_pybullet_object(object_geometry):
 
 def get_pb_pose_from_pillar_state(pillar_state, obj_name):
     pose_arr = pillar_state.get_values_as_vec([f"frame:{obj_name}:pose/position", f"frame:{obj_name}:pose/quaternion"])
+    return pb_pose_from_pose_arr(pose_arr)
+
+
+def pb_pose_from_pose_arr(pose_arr):
     position = pose_arr[:3]
     wxyz_quaternion = pose_arr[3:]
     xyzw_quaternion = wxyz_quaternion[1:] + [wxyz_quaternion[0]]

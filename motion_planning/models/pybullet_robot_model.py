@@ -10,9 +10,11 @@ from ..utils.utils import find_robot_urdf, \
 
 
 class PyBulletRobotModel:
-    def __init__(self, robot_urdf_fn):
-        self._robot_urdf_fn = find_robot_urdf(robot_urdf_fn)
+    def __init__(self, robot_cfg):
+        self._robot_urdf_fn = find_robot_urdf(robot_cfg.path_to_urdf)
+        self._grasp_link_name = robot_cfg.grasp_link
         self._obj_index = None
+        self._grasp_link_index = None
 
     @property
     def robot_urdf_fn(self):
@@ -20,7 +22,19 @@ class PyBulletRobotModel:
 
     @property
     def object_index(self):
+        if self._obj_index is None:
+            raise RuntimeError("Robot model not initialized in pybullet env yet")
         return self._obj_index
+
+    @property
+    def grasp_link_name(self):
+        return self._grasp_link_name
+
+    @property
+    def grasp_link_index(self):
+        if self._grasp_link_index is None:
+            raise RuntimeError("Robot model not initialized in pybullet env yet")
+        return self._grasp_link_index
 
     def set_conf(self, joints, joint_positions):
         pb_utils.set_joint_positions(self._obj_index, joints, joint_positions)
@@ -28,9 +42,12 @@ class PyBulletRobotModel:
     def set_pybullet_obj_index(self, obj_index):
         self._obj_index = obj_index
 
+    def set_grasp_link_index(self, grasp_link_index):
+        self._grasp_link_index = grasp_link_index
+
     def forward_kinematics(self, joint_indices, joint_values, tool_link_idx):
         pb_utils.set_joint_positions(self.object_index, joint_indices, joint_values)
-        link_pose = pb_utils.get_link_pose(tool_link_idx)
+        link_pose = pb_utils.get_link_pose(self.object_index, tool_link_idx)
         return link_pose
 
     def inverse_kinematics(self, goal_ee_pose, pos_tolerance=1e-3, ori_tolerance=np.pi * 1e-3, tool_link=7,

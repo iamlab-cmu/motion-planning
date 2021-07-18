@@ -33,7 +33,7 @@ def make_collision_checker(object_name_to_pose, object_name_to_geometry, cfg, ro
     joint_positions = [0., 0., 0., -1.5708, 0., 1.8675, 0., 0.02, 0.02]
     pillar_state.update_property("frame:franka:joint_positions", joint_positions)
     if robot_model is None:
-        robot_model = PyBulletRobotModel(cfg.robot.path_to_urdf)
+        robot_model = PyBulletRobotModel(cfg.robot)
     for object_name in object_name_to_pose.keys():
         pillar_state.update_property(f"frame:{object_name}:pose/position", object_name_to_pose[object_name][:3])
         pillar_state.update_property(f"frame:{object_name}:pose/quaternion", object_name_to_pose[object_name][3:])

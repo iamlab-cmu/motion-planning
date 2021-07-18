@@ -26,7 +26,6 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._disabled_collisions = disabled_collisions
         self._active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
         self._attached_object_names = attached_object_names
-        self._grasp_link = self._robot_model.link_names_to_link_numbers([cfg.robot.grasp_link])[0]
         self._update_collision_fn()
 
     def _workspace_collisions(self):
@@ -59,11 +58,11 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
 
     def make_attachments(self):
         attachments = []
-        robot_to_world = pb_utils.get_link_pose(self._robot_model.object_index, self._grasp_link)
+        robot_to_world = pb_utils.get_link_pose(self._robot_model.object_index, self._robot_model.grasp_link_index)
         for obj_name in self._attached_object_names:
             obj_to_world = pb_utils.get_link_pose(self._env.object_name_to_object_id[obj_name], -1)
             grasp = pb_utils.multiply(pb_utils.invert(robot_to_world), obj_to_world)
-            attachment = pb_utils.Attachment(self._robot_model.object_index, self._grasp_link, grasp,
+            attachment = pb_utils.Attachment(self._robot_model.object_index, self._robot_model.grasp_link_index, grasp,
                                              self._env.object_name_to_object_id[obj_name])
             attachment.assign()
             attachments.append(attachment)
