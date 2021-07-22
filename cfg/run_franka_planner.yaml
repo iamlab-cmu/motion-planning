@@ -8,6 +8,6 @@ plan_with_constraints: True
 gui: True
 vis_plan: True
 planner:
-  type: RRT
+  type: bitstar
   interpolate: True
   interpolation_steps: 10

@@ -41,6 +41,7 @@ class IAMMotionPlanner():
         self._cfg = cfg
 
     def replan(self, start_pillar_state, goal, max_planning_time=5, object_name_to_geometry={}):
+        self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
         if self._collision_checker is None:
             collision_checker = PyBulletCollisionChecker(
                 self._env, start_pillar_state, {}, self._active_joints,
@@ -48,7 +49,6 @@ class IAMMotionPlanner():
             self._set_collision_checker(collision_checker)
         else:
             self._collision_checker.update_state(start_pillar_state)
-        self._env.initialize_workspace(start_pillar_state, object_name_to_geometry)
         start_ompl_state = self._pillar_state_to_ompl_state(start_pillar_state)
         if isinstance(goal, JointGoal):
             goal_ompl_state = goal.get_ompl_state(self._pspace)
@@ -128,11 +128,14 @@ class IAMMotionPlanner():
             ompl_state[i] = joint
         return ompl_state
 
-    def visualize_plan(self, solution_path, block=True, duration=1):
+    def visualize_plan(self, solution_path, block=True, duration=1, collision_checker=None):
         duration_per_step = duration / len(solution_path)
         for joint_conf in solution_path:
             active_joint_numbers = self._robot_model.joint_names_to_joint_numbers(self._active_joints)
             self._robot_model.set_conf(active_joint_numbers, joint_conf)
+            if collision_checker is not None:
+                ompl_state = self._make_joint_goal(joint_conf)
+                assert not collision_checker.ompl_state_in_collision(ompl_state)
             sleep(duration_per_step)
             if block:
                 input("OK?")

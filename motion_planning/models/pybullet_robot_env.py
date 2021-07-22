@@ -12,10 +12,15 @@ class PyBulletRobotEnv:
         pb_utils.add_data_path()
         p.loadURDF("plane.urdf")
         self.initialize_robot(robot_model)
+        self._workspace_initialized = False
 
     @property
     def object_name_to_object_id(self):
         return self._object_name_to_object_id.copy()
+
+    @property
+    def workspace_initialized(self):
+        return self._workspace_initialized
 
     def initialize_robot(self, robot_model):
         robot_urdf_fn = robot_model.robot_urdf_fn
@@ -32,6 +37,7 @@ class PyBulletRobotEnv:
                 object_name_to_geometry[object_name])
             obj_pose = get_pb_pose_from_pillar_state(pillar_state, object_name)
             pb_utils.set_pose(self._object_name_to_object_id[object_name], obj_pose)
+        self._workspace_initialized = True
 
     def close(self):
         pb_utils.disconnect()
