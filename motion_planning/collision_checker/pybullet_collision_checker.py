@@ -53,10 +53,12 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         return self._pb_robot_collision_fn(conf)
 
     def pillar_state_in_collision(self):  # mostly for testing
+        assert self._env.workspace_initialized
         joint_conf = joint_conf_from_pillar_state(self._pillar_state, self._robot_name, self._active_joint_numbers)
         return self.joint_conf_in_collision(joint_conf) or self._workspace_collisions()
 
     def ompl_state_in_collision(self, ompl_state):
+        assert self._env.workspace_initialized
         joint_conf = [ompl_state[i] for i in range(len(self._active_joint_numbers))]
         return self.joint_conf_in_collision(joint_conf) or self._workspace_collisions()
 
@@ -80,6 +82,7 @@ class PyBulletCollisionChecker(BaseCollisionChecker):
         self._update_collision_fn(new_attachment_names=new_attachment_names)
 
     def _update_collision_fn(self, new_attachment_names=None, new_attachment_names_to_grasp=None):
+        assert self._env.workspace_initialized
         if new_attachment_names is not None:
             self._attached_object_names = new_attachment_names
         if new_attachment_names_to_grasp is not None:
